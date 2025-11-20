@@ -2,16 +2,25 @@ package eee.eee4.screenHandler;
 
 import eee.eee4.registry.EEEBlocks;
 import eee.eee4.registry.EEEScreenHandlers;
+import net.minecraft.block.EnchantingTableBlock;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.ChiseledBookshelfBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -19,7 +28,9 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
     private final Inventory inventory;
     private final ScreenHandlerContext context;
 
-    private final List<String> entries = new ArrayList<>();
+    private List<ChiseledBookshelfBlockEntity> bookshelves = new LinkedList<>();
+
+    private static final Logger LOGGER =  LogManager.getLogger();
 
     public EnchantmentCopyingScreenHandler(int syncId, PlayerInventory playerInventory) {
         this(syncId, playerInventory, ScreenHandlerContext.EMPTY);
@@ -51,25 +62,27 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
         this.addPlayerSlots(playerInventory, 8, 80);
 
-        // placeholder behaviour
-        for (int i = 0; i < 20; i++) {
-            if(i == 2)
-                entries.add("big ass enchantment name mtfkrs " + (i + 1));
-            else
-                entries.add("Enchantment " + (i + 1));
-
-        }
+        scanBookshelves();
 
     }
 
-    public int getTotalEntries() {
-        return entries.size();
+    private void scanBookshelves() {
+        this.context.run((world, blockpos) -> {
+
+            for (BlockPos offset : EnchantingTableBlock.POWER_PROVIDER_OFFSETS) {
+                BlockEntity be = world.getBlockEntity(blockpos.add(offset));
+                if (be instanceof ChiseledBookshelfBlockEntity && EnchantmentCopyingScreenHandler.canAccessBookshelves(world, blockpos, offset)) {
+                    bookshelves.add((ChiseledBookshelfBlockEntity) be);
+                    LOGGER.log(Level.INFO,"new bookshelf entity added "+bookshelves.size());
+                }
+            }
+
+        });
     }
 
-    public String getEntry(int index) {
-        return entries.get(index);
+    public static boolean canAccessBookshelves(World world,BlockPos blockPos,BlockPos offset){
+        return world.getBlockState(blockPos.add(offset.getX() / 2, offset.getY(), offset.getZ() / 2)).isIn(BlockTags.ENCHANTMENT_POWER_TRANSMITTER);
     }
-
 
     @Override
     public boolean canUse(PlayerEntity player) {
@@ -86,29 +99,7 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
     @Override
     public ItemStack quickMove(PlayerEntity player, int slotIndex) {
-        ItemStack newStack = ItemStack.EMPTY;
-        Slot slot = this.slots.get(slotIndex);
-
-        if (slot.hasStack()) {
-            ItemStack original = slot.getStack();
-            newStack = original.copy();
-
-            if (slotIndex == 0) {
-                if (!insertItem(original, 1, slots.size(), true)) {
-                    return ItemStack.EMPTY;
-                }
-            } else {
-                if (!insertItem(original, 0, 1, false)) {
-                    return ItemStack.EMPTY;
-                }
-            }
-
-            if (original.isEmpty()) {
-                slot.setStack(ItemStack.EMPTY);
-            } else {
-                slot.markDirty();
-            }
-        }
-        return newStack;
+        // TODO
+        return ItemStack.EMPTY;
     }
 }

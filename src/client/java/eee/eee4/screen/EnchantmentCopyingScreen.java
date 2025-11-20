@@ -33,8 +33,6 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
     //this logic will change further down the line
     private boolean[] temporaryEncoding =  new boolean[]{true,true,true,true,true,true};
 
-    private static final Logger LOGGER = LogManager.getLogger();
-
     public EnchantmentCopyingScreen(
             EnchantmentCopyingScreenHandler handler,
             PlayerInventory playerInventory,

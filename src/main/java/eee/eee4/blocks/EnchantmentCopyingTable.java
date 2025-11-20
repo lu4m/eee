@@ -36,7 +36,8 @@ public class EnchantmentCopyingTable extends BlockWithEntity {
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (!world.isClient()) {
+        BlockEntity be = world.getBlockEntity(pos);
+        if (be instanceof EnchantmentCopyingTableEntity) {
             player.openHandledScreen(state.createScreenHandlerFactory(world, pos));
         }
 
@@ -46,7 +47,7 @@ public class EnchantmentCopyingTable extends BlockWithEntity {
     @Override
     public NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
         BlockEntity blockEntity = world.getBlockEntity(pos);
-        if (blockEntity instanceof EnchantmentCopyingTableEntity tableEntity) {
+        if (blockEntity instanceof EnchantmentCopyingTableEntity) {
 
             return new SimpleNamedScreenHandlerFactory((syncId, inventory, player)
                     -> new EnchantmentCopyingScreenHandler(syncId, inventory, ScreenHandlerContext.create(world, pos)
