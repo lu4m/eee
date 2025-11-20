@@ -19,8 +19,6 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
     private final Inventory inventory;
     private final ScreenHandlerContext context;
 
-    public static final int VISIBLE_COUNT = 3;
-
     private final List<String> entries = new ArrayList<>();
 
     public EnchantmentCopyingScreenHandler(int syncId, PlayerInventory playerInventory) {
@@ -39,19 +37,19 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
             }
         };
 
-        this.addSlot(new Slot(this.inventory, 0, 15, 33) {
+        this.addSlot(new Slot(this.inventory, 0, 13, 22) {
             public int getMaxItemCount() {
                 return 1;
             }
         });
-        this.addSlot(new Slot(this.inventory, 1, 15, 51) {
+        this.addSlot(new Slot(this.inventory, 1, 13, 45) {
             public boolean canInsert(ItemStack stack) {
                 return stack.isOf(Items.BLACK_DYE);
             }
 
         });
 
-        this.addPlayerSlots(playerInventory, 8, 92);
+        this.addPlayerSlots(playerInventory, 8, 80);
 
         // placeholder behaviour
         for (int i = 0; i < 20; i++) {

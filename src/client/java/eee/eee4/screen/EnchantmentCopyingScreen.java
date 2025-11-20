@@ -4,11 +4,8 @@ import eee.eee4.EEE;
 import eee.eee4.screenHandler.EnchantmentCopyingScreenHandler;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.EnchantingPhrases;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.screen.EnchantmentScreenHandler;
-import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
@@ -16,38 +13,27 @@ import org.apache.logging.log4j.Logger;
 
 public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingScreenHandler> {
 
-    private static final Identifier[] LEVEL_TEXTURES = new Identifier[]{Identifier.ofVanilla("container/enchanting_table/level_1"), Identifier.ofVanilla("container/enchanting_table/level_2"), Identifier.ofVanilla("container/enchanting_table/level_3")};
-    private static final Identifier[] LEVEL_DISABLED_TEXTURES = new Identifier[]{Identifier.ofVanilla("container/enchanting_table/level_1_disabled"), Identifier.ofVanilla("container/enchanting_table/level_2_disabled"), Identifier.ofVanilla("container/enchanting_table/level_3_disabled")};
-    private static final Identifier ENCHANTMENT_SLOT_DISABLED_TEXTURE = Identifier.ofVanilla("container/enchanting_table/enchantment_slot_disabled");
-    private static final Identifier ENCHANTMENT_SLOT_HIGHLIGHTED_TEXTURE = Identifier.ofVanilla("container/enchanting_table/enchantment_slot_highlighted");
-    private static final Identifier ENCHANTMENT_SLOT_TEXTURE = Identifier.ofVanilla("container/enchanting_table/enchantment_slot");
+    //private static final Identifier[] LEVEL_TEXTURES = new Identifier[]{Identifier.ofVanilla("container/enchanting_table/level_1"), Identifier.ofVanilla("container/enchanting_table/level_2"), Identifier.ofVanilla("container/enchanting_table/level_3")};
+    //private static final Identifier[] LEVEL_DISABLED_TEXTURES = new Identifier[]{Identifier.ofVanilla("container/enchanting_table/level_1_disabled"), Identifier.ofVanilla("container/enchanting_table/level_2_disabled"), Identifier.ofVanilla("container/enchanting_table/level_3_disabled")};
 
-    private static final int LIST_X = 42;
-    private static final int LIST_Y = 18;
-    private static final int ENTRY_WIDTH = 108;
-    private static final int ENTRY_HEIGHT = 19;
+    private static final Identifier BG_TEXTURE = Identifier.of(EEE.MOD_ID, "textures/gui/container/enchantment_copying.png");
+    private static final Identifier BOOKSHELF_TEXTURE = Identifier.of(EEE.MOD_ID, "textures/gui/sprites/container/enchantment_copying/bookshelf_bg.png");
+    private static final Identifier BOOKS_SPRITE = Identifier.of(EEE.MOD_ID, "textures/gui/sprites/container/enchantment_copying/books_sprite.png");
+    private static final Identifier BOOKS_HIGHLIGHT = Identifier.of(EEE.MOD_ID,"textures/gui/sprites/container/enchantment_copying/books_highlight.png");
+    private static final Identifier BOOKS_SPRITE_DISABLED = Identifier.of(EEE.MOD_ID,"textures/gui/sprites/container/enchantment_copying/books_sprite_disabled.png");
 
-    private static final int SCROLLBAR_X = 156;
-    private static final int SCROLLBAR_Y = 18;
-    private static final int SCROLLBAR_HEIGHT = 57;
-    private static final int SCROLL_BUTTON_HEIGHT = 15;
-    private static final int SCROLL_BUTTON_WIDTH = 12;
+    private static final int BOOKSHELF_X = 36;
+    private static final int BOOKSHELF_Y = 18;
+    private static final int BOOK_WIDTH = 16;
+    private static final int BOOK_HEIGHT = 27;
 
-    private int entries_amount;
+    private int bookshelfInView = -1;
+    private int bookshelfAmount = -1;
 
-    private int scrollIndex;                    // sempre entre 0 e entries_amount
-    private float scrollIndexOffset;            // SCROLLBAR_HEIGHT/entries_amount
-    private float fullLengthScrollDistance;     // the real distance needed to scroll from top to bottom
-    private float scrollDistanceThreshold;      // fullLengthScrollDistance/entries_amount
-
-    private float scrollDistance;
-
-    private final int[] inView = new  int[]{-1,-1,-1};
+    //this logic will change further down the line
+    private boolean[] temporaryEncoding =  new boolean[]{true,true,true,true,true,true};
 
     private static final Logger LOGGER = LogManager.getLogger();
-
-    private static final Identifier TEXTURE =
-            Identifier.of(EEE.MOD_ID,"textures/gui/enchantment_copying.png");
 
     public EnchantmentCopyingScreen(
             EnchantmentCopyingScreenHandler handler,
@@ -57,24 +43,18 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
 
         super(handler, playerInventory, title);
         this.backgroundWidth = 176;
-        this.backgroundHeight = 174;
+        this.backgroundHeight = 162;
 
         this.titleX = 10;
         this.titleY = 6;
 
-        this.playerInventoryTitleX = 8;
-        this.playerInventoryTitleY = this.backgroundHeight - 96;
+        this.playerInventoryTitleX = 9;
+        this.playerInventoryTitleY = this.backgroundHeight - 94;
 
-        this.entries_amount = handler.getTotalEntries();
+        // for testing
 
-        this.scrollIndex = 0;
-        this.scrollIndexOffset = (float) SCROLLBAR_HEIGHT / entries_amount;
-
-        this.fullLengthScrollDistance = 40.0f;
-
-        this.scrollDistanceThreshold = fullLengthScrollDistance / entries_amount;
-
-        updateInView();
+        this.bookshelfInView = 0;
+        this.bookshelfAmount = 3;
 
     }
 
@@ -88,79 +68,74 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
 
         context.drawTexture(
                 RenderPipelines.GUI_TEXTURED,
-                TEXTURE,
+                BG_TEXTURE,
                 this.x, this.y, 0.0F,0.0F , this.backgroundWidth, this.backgroundHeight, 256, 256
         );
 
-        drawEntriesList(context, mouseX, mouseY);
-        drawScrollBar(context);
+        drawBookshelf(context, mouseX, mouseY);
 
     }
 
-    private void drawEntriesList(DrawContext ctx, int mouseX, int mouseY) {
-        for (int i = 0 ; i<3 ; i++){
-            drawEntry(i, ctx, mouseX, mouseY);
-        }
-    }
+    private void drawBookshelf(DrawContext context, int mouseX, int mouseY) {
 
-    private void drawEntry(int displayIndex, DrawContext context, int mouseX, int mouseY){
-
-        int listYRelative = this.y + LIST_Y;
-        int listXRelative = this.x + LIST_X;
-
-        /*
-            TODO: cool runic text"
-        */
-
-        // StringVisitable stringVisitable = EnchantingPhrases.getInstance().generatePhrase(this.textRenderer, textLength);
-        // look into how to make enchantment names display nicely (font size ?)
-        String placeholder = handler.getEntry(inView[displayIndex]);
-        int MaxTextLength = ENTRY_WIDTH - 30;
-
-        int mouseXRelativeToEntry = mouseX - (listXRelative);
-        int mouseYRelativeToEntry = mouseY - (listYRelative + ENTRY_HEIGHT * displayIndex);
-
-
-        int runicTextColor = 0xFF685E4A;
-        if (mouseXRelativeToEntry >= 0 && mouseYRelativeToEntry >= 0 && mouseXRelativeToEntry < ENTRY_WIDTH && mouseYRelativeToEntry < ENTRY_HEIGHT) {
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, ENCHANTMENT_SLOT_HIGHLIGHTED_TEXTURE, listXRelative, listYRelative + ENTRY_HEIGHT * displayIndex, ENTRY_WIDTH, ENTRY_HEIGHT);
-            runicTextColor = 0xFF80FF20;
-        } else {
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, ENCHANTMENT_SLOT_TEXTURE, listXRelative, listYRelative + ENTRY_HEIGHT * displayIndex, ENTRY_WIDTH, ENTRY_HEIGHT);
+        if (bookshelfInView < 0) {
+            return;
         }
 
-        context.drawWrappedText(this.textRenderer, Text.literal(placeholder), listXRelative + 19, listYRelative + (ENTRY_HEIGHT * displayIndex) + 4, MaxTextLength, runicTextColor, false);
+        context.drawTexture(RenderPipelines.GUI_TEXTURED,BOOKSHELF_TEXTURE,
+                this.x + BOOKSHELF_X,this.y+BOOKSHELF_Y,
+                0.0F,0.0F,114,47,114,47
+            );
 
-        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, LEVEL_TEXTURES[displayIndex], listXRelative + 1, listYRelative + ENTRY_HEIGHT * displayIndex, 16, 16);
-
-
-    }
-
-    private void drawScrollBar(DrawContext ctx) {
-
-        int top = this.y+SCROLLBAR_Y+Math.round(scrollIndexOffset*scrollIndex);
-        ctx.fill(
-                this.x+SCROLLBAR_X,
-                top,
-                this.x+SCROLLBAR_X+SCROLL_BUTTON_WIDTH,
-                top+SCROLL_BUTTON_HEIGHT,
-                0xFFFF0000   // red
+        context.drawText(this.textRenderer,"Bookshelf "+(bookshelfInView+1),
+                this.x+BOOKSHELF_X + 4,this.y+BOOKSHELF_Y + 4,0xFFDEDEDE,true
         );
-    }
 
-    private void updateInView(){
-        for(int i = 0 ; i < 3; i++){
-            if(i + scrollIndex >= entries_amount)
-                inView[i] = -1;
-            else
-                inView[i] = i + scrollIndex;
+        for(int i = 0; i < 6; i++){
+            if(temporaryEncoding[i]){
+                if(i%2==0){
+                    drawBook(context,mouseX,mouseY,i,false);
+                }
+                else{
+                    drawBook(context,mouseX,mouseY,i,true);
+                }
+            }
         }
 
     }
 
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        return false;
+    private void drawBook(DrawContext context, int mouseX, int mouseY,int bookIndex,boolean active){
+
+        int startingPointXTexture = bookIndex * (BOOK_WIDTH+2);
+        int startingPointXScreen = this.x + BOOKSHELF_X + 4 + startingPointXTexture;
+        int startingPointY = this.y+BOOKSHELF_Y+16;
+
+        Identifier texture = BOOKS_SPRITE_DISABLED;
+        if (active) {
+            texture = BOOKS_SPRITE;
+        }
+
+        context.drawTexture(RenderPipelines.GUI_TEXTURED,texture,
+                startingPointXScreen,
+                startingPointY,
+                (float) startingPointXTexture,
+                0.0F,
+                BOOK_WIDTH,BOOK_HEIGHT,
+                106,BOOK_HEIGHT
+        );
+
+        if (mouseX >= startingPointXScreen && mouseX <= startingPointXScreen + BOOK_WIDTH
+                && mouseY >= startingPointY && mouseY <= startingPointY + BOOK_HEIGHT) {
+
+            context.drawTexture(RenderPipelines.GUI_TEXTURED,BOOKS_HIGHLIGHT,
+                    startingPointXScreen - 1,
+                    startingPointY,
+                    (float) (startingPointXTexture),
+                    0.0F,
+                    BOOK_WIDTH + 2,BOOK_HEIGHT,
+                    108,BOOK_HEIGHT
+            );
+        }
     }
 
 
