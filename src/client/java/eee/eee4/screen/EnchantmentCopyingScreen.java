@@ -102,6 +102,17 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
 
     }
 
+    private boolean isMouseOverBook( int mouseX, int mouseY,int bookIndex){
+
+        int startingPointXTexture = bookIndex * (BOOK_WIDTH+2);
+        int startingPointXScreen = this.x + BOOKSHELF_X + 4 + startingPointXTexture;
+        int startingPointY = this.y+BOOKSHELF_Y+16;
+
+        return mouseX >= startingPointXScreen && mouseX <= startingPointXScreen + BOOK_WIDTH
+                && mouseY >= startingPointY && mouseY <= startingPointY + BOOK_HEIGHT;
+    }
+
+
     private void drawBook(DrawContext context, int mouseX, int mouseY,int bookIndex,boolean active){
 
         int startingPointXTexture = bookIndex * (BOOK_WIDTH+2);
@@ -122,8 +133,7 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
                 106,BOOK_HEIGHT
         );
 
-        if (mouseX >= startingPointXScreen && mouseX <= startingPointXScreen + BOOK_WIDTH
-                && mouseY >= startingPointY && mouseY <= startingPointY + BOOK_HEIGHT) {
+        if (isMouseOverBook(mouseX,mouseY,bookIndex)) {
 
             context.drawTexture(RenderPipelines.GUI_TEXTURED,BOOKS_HIGHLIGHT,
                     startingPointXScreen - 1,
