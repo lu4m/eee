@@ -3,6 +3,7 @@ package eee.eee4.screen;
 import eee.eee4.EEE;
 import eee.eee4.screenHandler.EnchantmentCopyingScreenHandler;
 import net.minecraft.client.gl.RenderPipelines;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerInventory;
@@ -21,17 +22,17 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
     private static final Identifier BOOKS_SPRITE = Identifier.of(EEE.MOD_ID, "textures/gui/sprites/container/enchantment_copying/books_sprite.png");
     private static final Identifier BOOKS_HIGHLIGHT = Identifier.of(EEE.MOD_ID,"textures/gui/sprites/container/enchantment_copying/books_highlight.png");
     private static final Identifier BOOKS_SPRITE_DISABLED = Identifier.of(EEE.MOD_ID,"textures/gui/sprites/container/enchantment_copying/books_sprite_disabled.png");
+    private static final Identifier PGUP_TEXTURE = Identifier.of(EEE.MOD_ID,"textures/gui/sprites/container/enchantment_copying/pgup.png");
+    private static final Identifier PGDOWN_TEXTURE = Identifier.of(EEE.MOD_ID,"textures/gui/sprites/container/enchantment_copying/pgdown.png");
 
     private static final int BOOKSHELF_X = 36;
     private static final int BOOKSHELF_Y = 18;
     private static final int BOOK_WIDTH = 16;
     private static final int BOOK_HEIGHT = 27;
 
-    private int bookshelfInView = -1;
-    private int bookshelfAmount = -1;
-
-    //this logic will change further down the line
-    private boolean[] temporaryEncoding =  new boolean[]{true,true,true,true,true,true};
+    private static final int PG_X = 155;
+    private static final int PGUP_Y = 25;
+    private static final int PGDOWN_Y = 44;
 
     public EnchantmentCopyingScreen(
             EnchantmentCopyingScreenHandler handler,
@@ -49,10 +50,6 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
         this.playerInventoryTitleX = 9;
         this.playerInventoryTitleY = this.backgroundHeight - 94;
 
-        // for testing
-
-        this.bookshelfInView = 0;
-        this.bookshelfAmount = 3;
 
     }
 
@@ -70,34 +67,27 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
                 this.x, this.y, 0.0F,0.0F , this.backgroundWidth, this.backgroundHeight, 256, 256
         );
 
-        drawBookshelf(context, mouseX, mouseY);
+        if(this.handler.getBookshelfInView() >= 0){
+            drawBookshelf(context, mouseX, mouseY);
+        }
+        drawPgUp(context, mouseX, mouseY);
+        drawPgDown(context, mouseX, mouseY);
 
     }
 
     private void drawBookshelf(DrawContext context, int mouseX, int mouseY) {
-
-        if (bookshelfInView < 0) {
-            return;
-        }
 
         context.drawTexture(RenderPipelines.GUI_TEXTURED,BOOKSHELF_TEXTURE,
                 this.x + BOOKSHELF_X,this.y+BOOKSHELF_Y,
                 0.0F,0.0F,114,47,114,47
             );
 
-        context.drawText(this.textRenderer,"Bookshelf "+(bookshelfInView+1),
+        context.drawText(this.textRenderer,"Bookshelf "+( this.handler.getBookshelfInView() +1),
                 this.x+BOOKSHELF_X + 4,this.y+BOOKSHELF_Y + 4,0xFFDEDEDE,true
         );
 
         for(int i = 0; i < 6; i++){
-            if(temporaryEncoding[i]){
-                if(i%2==0){
-                    drawBook(context,mouseX,mouseY,i,false);
-                }
-                else{
-                    drawBook(context,mouseX,mouseY,i,true);
-                }
-            }
+            // TODO
         }
 
     }
@@ -110,6 +100,32 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
 
         return mouseX >= startingPointXScreen && mouseX <= startingPointXScreen + BOOK_WIDTH
                 && mouseY >= startingPointY && mouseY <= startingPointY + BOOK_HEIGHT;
+    }
+
+    private boolean isMouseOverPgDown( int mouseX, int mouseY){
+        return mouseX >= PG_X+this.x && mouseX <= PG_X+this.x+14
+                && mouseY >= PGDOWN_Y+this.y && mouseY <= PGDOWN_Y+this.y+14;
+    }
+
+    private void drawPgDown(DrawContext context,int mouseX, int mouseY){
+        context.drawTexture(RenderPipelines.GUI_TEXTURED,PGDOWN_TEXTURE,PG_X+this.x,PGDOWN_Y+this.y,
+                0.0F,0.0F,14,14,14,14);
+        if (isMouseOverPgDown(mouseX,mouseY)){
+            context.drawStrokedRectangle(PG_X+this.x,PGDOWN_Y+this.y,14,14,0x80FFFFFF);
+        }
+    }
+
+    private boolean isMouseOverPgUp( int mouseX, int mouseY){
+        return mouseX >= PG_X+this.x && mouseX <= PG_X+this.x+14
+                && mouseY >= PGUP_Y+this.y && mouseY <= PGUP_Y+this.y+14;
+    }
+
+    private void drawPgUp(DrawContext context,int mouseX, int mouseY){
+        context.drawTexture(RenderPipelines.GUI_TEXTURED,PGUP_TEXTURE,PG_X+this.x,PGUP_Y+this.y,
+                0.0F,0.0F,14,14,14,14);
+        if (isMouseOverPgUp(mouseX,mouseY)){
+            context.drawStrokedRectangle(PG_X+this.x,PGUP_Y+this.y,14,14,0x80FFFFFF);
+        }
     }
 
 
@@ -146,5 +162,27 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
         }
     }
 
+    @Override
+    public boolean mouseClicked(Click click, boolean doubled){
+        int click_y = (int) Math.round(click.y());
+        int click_x = (int) Math.round(click.x());
 
+        for (int i = 0; i<6; i++){
+            if (isMouseOverBook(click_x,click_y,i)){
+
+                this.client.interactionManager.clickButton(this.handler.syncId, i);
+            }
+        }
+
+        if (isMouseOverPgDown(click_x,click_y)){
+            this.client.interactionManager.clickButton(this.handler.syncId, 6);
+        }
+
+        if (isMouseOverPgUp(click_x,click_y)){
+            this.client.interactionManager.clickButton(this.handler.syncId, 7);
+        }
+
+
+        return super.mouseClicked(click, doubled);
+    }
 }

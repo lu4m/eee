@@ -14,6 +14,7 @@ import net.minecraft.item.Items;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.Level;
@@ -28,7 +29,9 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
     private final Inventory inventory;
     private final ScreenHandlerContext context;
 
-    private List<ChiseledBookshelfBlockEntity> bookshelves = new LinkedList<>();
+    private List<ChiseledBookshelfBlockEntity> bookshelves;
+
+    private int bookshelfInView = -1;
 
     private static final Logger LOGGER =  LogManager.getLogger();
 
@@ -77,10 +80,43 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
                 }
             }
 
+            if (!this.bookshelves.isEmpty()) {
+                bookshelfInView = 0;
+            }
+
         });
     }
 
-    public static boolean canAccessBookshelves(World world,BlockPos blockPos,BlockPos offset){
+
+    public int getBookshelfInView(){
+        return bookshelfInView;
+    }
+
+    @Override
+    public boolean onButtonClick(PlayerEntity player, int id) {
+
+        //pg up
+        if (id == 7) {
+            bookshelfInView = (bookshelfInView + 1) % bookshelves.size();
+        }
+        //pg down
+        else if (id == 6){
+            bookshelfInView = (bookshelfInView - 1) % bookshelves.size();
+        }
+        //book
+        else if (id > 0 && id < 6){
+
+            // TODO
+
+        }
+        else{
+            throw new IllegalArgumentException("an invalid button id was called");
+        }
+
+        return super.onButtonClick(player, id);
+    }
+
+    public static boolean canAccessBookshelves(World world, BlockPos blockPos, BlockPos offset){
         return world.getBlockState(blockPos.add(offset.getX() / 2, offset.getY(), offset.getZ() / 2)).isIn(BlockTags.ENCHANTMENT_POWER_TRANSMITTER);
     }
 
@@ -99,7 +135,15 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
     @Override
     public ItemStack quickMove(PlayerEntity player, int slotIndex) {
+
         // TODO
+
         return ItemStack.EMPTY;
+    }
+
+    public class BookshelfEncoding{
+        private boolean[] validEncoding;
+        private boolean[] presentEncoding;
+        private List<Text>[] ToolTips;
     }
 }
