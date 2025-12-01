@@ -12,6 +12,9 @@ import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingScreenHandler> {
 
     //private static final Identifier[] LEVEL_TEXTURES = new Identifier[]{Identifier.ofVanilla("container/enchanting_table/level_1"), Identifier.ofVanilla("container/enchanting_table/level_2"), Identifier.ofVanilla("container/enchanting_table/level_3")};
@@ -75,6 +78,8 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
 
     }
 
+
+
     private void drawBookshelf(DrawContext context, int mouseX, int mouseY) {
 
         context.drawTexture(RenderPipelines.GUI_TEXTURED,BOOKSHELF_TEXTURE,
@@ -86,8 +91,9 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
                 this.x+BOOKSHELF_X + 4,this.y+BOOKSHELF_Y + 4,0xFFDEDEDE,true
         );
 
+        // TODO: will use BookshelfEncoding utility
         for(int i = 0; i < 6; i++){
-            // TODO
+            drawBook(context,mouseX,mouseY,i,true);
         }
 
     }
@@ -161,6 +167,32 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
             );
         }
     }
+
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+        super.render(context, mouseX, mouseY, deltaTicks);
+        this.drawMouseoverTooltip(context, mouseX, mouseY);
+        if (this.handler.getBookshelfInView() >= 0) {
+            drawBookToolTips(context, mouseX, mouseY);
+        }
+    }
+
+    private void drawBookToolTips(DrawContext context, int mouseX, int mouseY) {
+
+        for (int i = 0; i < 6; i++) {
+            if (isMouseOverBook(mouseX, mouseY, i)) {
+
+                List<Text> tooltip = new ArrayList<>();
+                // TODO: will use BookshelfEncoding utility
+                tooltip.add(Text.literal("Enchantment Slot " + (i + 1)));
+
+                context.drawTooltip(this.textRenderer, tooltip, mouseX, mouseY);
+                return;
+            }
+        }
+
+    }
+
 
     @Override
     public boolean mouseClicked(Click click, boolean doubled){

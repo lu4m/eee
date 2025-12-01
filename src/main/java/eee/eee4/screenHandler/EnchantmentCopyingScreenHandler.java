@@ -21,7 +21,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -31,10 +31,9 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
     private List<ChiseledBookshelfBlockEntity> bookshelves;
 
-    private int bookshelfInView = -1;
-
-    private static final Logger LOGGER =  LogManager.getLogger();
-
+    private final PropertyDelegate properties;
+    private static final int BOOKSHELF_IN_VIEW_PROP = 0;
+    
     public EnchantmentCopyingScreenHandler(int syncId, PlayerInventory playerInventory) {
         this(syncId, playerInventory, ScreenHandlerContext.EMPTY);
     }
@@ -65,31 +64,37 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
         this.addPlayerSlots(playerInventory, 8, 80);
 
+        this.properties = new ArrayPropertyDelegate(1);
+        this.addProperties(this.properties);
+
         scanBookshelves();
+
+        if (!this.bookshelves.isEmpty()) {
+            this.properties.set(BOOKSHELF_IN_VIEW_PROP,0);
+        }
+        else{
+            this.properties.set(BOOKSHELF_IN_VIEW_PROP,-1);
+        }
+
+        this.sendContentUpdates();
 
     }
 
     private void scanBookshelves() {
-        this.context.run((world, blockpos) -> {
+        this.bookshelves = new ArrayList<ChiseledBookshelfBlockEntity>();
 
+        this.context.run((world, blockpos) -> {
             for (BlockPos offset : EnchantingTableBlock.POWER_PROVIDER_OFFSETS) {
                 BlockEntity be = world.getBlockEntity(blockpos.add(offset));
                 if (be instanceof ChiseledBookshelfBlockEntity && EnchantmentCopyingScreenHandler.canAccessBookshelves(world, blockpos, offset)) {
                     bookshelves.add((ChiseledBookshelfBlockEntity) be);
-                    LOGGER.log(Level.INFO,"new bookshelf entity added "+bookshelves.size());
                 }
             }
-
-            if (!this.bookshelves.isEmpty()) {
-                bookshelfInView = 0;
-            }
-
         });
     }
 
-
     public int getBookshelfInView(){
-        return bookshelfInView;
+        return this.properties.get(BOOKSHELF_IN_VIEW_PROP);
     }
 
     @Override
@@ -97,11 +102,19 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
         //pg up
         if (id == 7) {
-            bookshelfInView = (bookshelfInView + 1) % bookshelves.size();
+            int n = bookshelves.size();
+            int next = (((this.properties.get(BOOKSHELF_IN_VIEW_PROP) + 1) % n) + n) % n;
+            this.properties.set(BOOKSHELF_IN_VIEW_PROP, next);
+            this.sendContentUpdates();
+            return true;
         }
         //pg down
         else if (id == 6){
-            bookshelfInView = (bookshelfInView - 1) % bookshelves.size();
+            int n = bookshelves.size();
+            int next = (((this.properties.get(BOOKSHELF_IN_VIEW_PROP) - 1) % n) + n) % n;
+            this.properties.set(BOOKSHELF_IN_VIEW_PROP, next);
+            this.sendContentUpdates();
+            return true;
         }
         //book
         else if (id > 0 && id < 6){
