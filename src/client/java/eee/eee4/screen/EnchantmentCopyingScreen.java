@@ -70,7 +70,7 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
                 this.x, this.y, 0.0F,0.0F , this.backgroundWidth, this.backgroundHeight, 256, 256
         );
 
-        if(this.handler.getBookshelfInView() >= 0){
+        if(this.handler.getBookshelfInViewProp() >= 0){
             drawBookshelf(context, mouseX, mouseY);
         }
         drawPgUp(context, mouseX, mouseY);
@@ -87,13 +87,22 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
                 0.0F,0.0F,114,47,114,47
             );
 
-        context.drawText(this.textRenderer,"Bookshelf "+( this.handler.getBookshelfInView() +1),
+        context.drawText(this.textRenderer,"Bookshelf "+( this.handler.getBookshelfInViewProp() +1),
                 this.x+BOOKSHELF_X + 4,this.y+BOOKSHELF_Y + 4,0xFFDEDEDE,true
         );
 
-        // TODO: will use BookshelfEncoding utility
+
         for(int i = 0; i < 6; i++){
-            drawBook(context,mouseX,mouseY,i,true);
+
+            int presentMask = this.handler.getPresentMaskProp();
+            boolean present = (presentMask & (1 << i)) != 0;
+
+            if(present) {
+                int activeMask = this.handler.getActiveMaskProp();
+                boolean active = (activeMask & (1 << i)) != 0;
+                drawBook(context, mouseX, mouseY, i, active);
+            }
+
         }
 
     }
@@ -172,7 +181,7 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
     public void render(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
         super.render(context, mouseX, mouseY, deltaTicks);
         this.drawMouseoverTooltip(context, mouseX, mouseY);
-        if (this.handler.getBookshelfInView() >= 0) {
+        if (this.handler.getBookshelfInViewProp() >= 0) {
             drawBookToolTips(context, mouseX, mouseY);
         }
     }
@@ -180,17 +189,19 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
     private void drawBookToolTips(DrawContext context, int mouseX, int mouseY) {
 
         for (int i = 0; i < 6; i++) {
-            if (isMouseOverBook(mouseX, mouseY, i)) {
+
+            int presentMask = this.handler.getPresentMaskProp();
+            boolean present = (presentMask & (1 << i)) != 0;
+
+            if (isMouseOverBook(mouseX, mouseY, i) && present) {
 
                 List<Text> tooltip = new ArrayList<>();
-                // TODO: will use BookshelfEncoding utility
                 tooltip.add(Text.literal("Enchantment Slot " + (i + 1)));
-
                 context.drawTooltip(this.textRenderer, tooltip, mouseX, mouseY);
                 return;
+
             }
         }
-
     }
 
 
@@ -201,7 +212,6 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
 
         for (int i = 0; i<6; i++){
             if (isMouseOverBook(click_x,click_y,i)){
-
                 this.client.interactionManager.clickButton(this.handler.syncId, i);
             }
         }

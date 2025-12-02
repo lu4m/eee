@@ -33,7 +33,9 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
     private final PropertyDelegate properties;
     private static final int BOOKSHELF_IN_VIEW_PROP = 0;
-    
+    private static final int ACTIVE_MASK_PROP = 1;
+    private static final int PRESENT_MASK_PROP = 2;
+
     public EnchantmentCopyingScreenHandler(int syncId, PlayerInventory playerInventory) {
         this(syncId, playerInventory, ScreenHandlerContext.EMPTY);
     }
@@ -64,16 +66,16 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
         this.addPlayerSlots(playerInventory, 8, 80);
 
-        this.properties = new ArrayPropertyDelegate(1);
+        this.properties = new ArrayPropertyDelegate(3);
         this.addProperties(this.properties);
 
         scanBookshelves();
 
         if (!this.bookshelves.isEmpty()) {
-            this.properties.set(BOOKSHELF_IN_VIEW_PROP,0);
+            this.setBookshelfInViewProp(0);
         }
         else{
-            this.properties.set(BOOKSHELF_IN_VIEW_PROP,-1);
+            this.setBookshelfInViewProp(-1);
         }
 
         this.sendContentUpdates();
@@ -93,8 +95,53 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         });
     }
 
-    public int getBookshelfInView(){
+    private void updateBookshelfEncoding() {
+        int index = getBookshelfInViewProp();
+
+        if (index < 0 || index >= bookshelves.size()) {
+            properties.set(ACTIVE_MASK_PROP, 0);
+            properties.set(PRESENT_MASK_PROP, 0);
+            return;
+        }
+
+        ChiseledBookshelfBlockEntity shelf = bookshelves.get(index);
+
+        int activeMask = 0;
+        int presentMask = 0;
+
+        for (int i = 0; i < 6; i++) {
+            ItemStack stack = shelf.getStack(i);
+
+            if (!stack.isEmpty()) {
+                presentMask |= (1 << i);
+
+
+                if (stack.isOf(Items.ENCHANTED_BOOK)) {
+                    activeMask |= (1 << i);
+                }
+            }
+        }
+
+        properties.set(ACTIVE_MASK_PROP, activeMask);
+        properties.set(PRESENT_MASK_PROP, presentMask);
+        sendContentUpdates();
+    }
+
+    public int getBookshelfInViewProp(){
         return this.properties.get(BOOKSHELF_IN_VIEW_PROP);
+    }
+
+    private void setBookshelfInViewProp(int newIndex){
+        this.properties.set(BOOKSHELF_IN_VIEW_PROP,newIndex);
+        updateBookshelfEncoding();
+    }
+
+    public int getActiveMaskProp(){
+        return this.properties.get(ACTIVE_MASK_PROP);
+    }
+
+    public int getPresentMaskProp(){
+        return this.properties.get(PRESENT_MASK_PROP);
     }
 
     @Override
@@ -103,17 +150,17 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         //pg up
         if (id == 7) {
             int n = bookshelves.size();
-            int next = (((this.properties.get(BOOKSHELF_IN_VIEW_PROP) + 1) % n) + n) % n;
-            this.properties.set(BOOKSHELF_IN_VIEW_PROP, next);
-            this.sendContentUpdates();
+            int next = Math.floorMod(getBookshelfInViewProp() + 1, bookshelves.size());
+            setBookshelfInViewProp(next);
+            sendContentUpdates();
             return true;
         }
         //pg down
         else if (id == 6){
             int n = bookshelves.size();
-            int next = (((this.properties.get(BOOKSHELF_IN_VIEW_PROP) - 1) % n) + n) % n;
-            this.properties.set(BOOKSHELF_IN_VIEW_PROP, next);
-            this.sendContentUpdates();
+            int next = Math.floorMod(getBookshelfInViewProp() - 1, bookshelves.size());
+            setBookshelfInViewProp(next);
+            sendContentUpdates();
             return true;
         }
         //book
@@ -154,9 +201,4 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         return ItemStack.EMPTY;
     }
 
-    public class BookshelfEncoding{
-        private boolean[] validEncoding;
-        private boolean[] presentEncoding;
-        private List<Text>[] ToolTips;
-    }
 }
