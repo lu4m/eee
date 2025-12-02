@@ -1,25 +1,38 @@
 package eee.eee4.screenHandler;
 
+import eee.eee4.EEE;
+import eee.eee4.networking.s2c.BookTooltipPayload;
 import eee.eee4.registry.EEEBlocks;
 import eee.eee4.registry.EEEScreenHandlers;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.EnchantingTableBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ChiseledBookshelfBlockEntity;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
+import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.StyleSpriteSource;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +79,7 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
         this.addPlayerSlots(playerInventory, 8, 80);
 
+
         this.properties = new ArrayPropertyDelegate(3);
         this.addProperties(this.properties);
 
@@ -78,8 +92,30 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
             this.setBookshelfInViewProp(-1);
         }
 
-        this.sendContentUpdates();
+        // initial state update
+        context.run((world, pos) -> {
+            if (playerInventory.player instanceof ServerPlayerEntity serverPlayer){
+                updateBookshelfEncoding();
+                sendTooltipPacket(serverPlayer);
+            }
+        });
 
+    }
+
+    public int getBookshelfInViewProp(){
+        return this.properties.get(BOOKSHELF_IN_VIEW_PROP);
+    }
+
+    private void setBookshelfInViewProp(int newIndex ){
+        this.properties.set(BOOKSHELF_IN_VIEW_PROP,newIndex);
+    }
+
+    public int getActiveMaskProp(){
+        return this.properties.get(ACTIVE_MASK_PROP);
+    }
+
+    public int getPresentMaskProp(){
+        return this.properties.get(PRESENT_MASK_PROP);
     }
 
     private void scanBookshelves() {
@@ -125,23 +161,51 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         properties.set(ACTIVE_MASK_PROP, activeMask);
         properties.set(PRESENT_MASK_PROP, presentMask);
         sendContentUpdates();
+
+
     }
 
-    public int getBookshelfInViewProp(){
-        return this.properties.get(BOOKSHELF_IN_VIEW_PROP);
+    private void sendTooltipPacket(ServerPlayerEntity player) {
+        List<List<Text>> all = new ArrayList<>();
+
+        for (int i = 0; i < 6; i++) {
+            all.add(buildTooltipFromServer(i));
+        }
+
+        BookTooltipPayload payload = new BookTooltipPayload(all);
+
+        player.networkHandler.sendPacket(new CustomPayloadS2CPacket(payload));
     }
 
-    private void setBookshelfInViewProp(int newIndex){
-        this.properties.set(BOOKSHELF_IN_VIEW_PROP,newIndex);
-        updateBookshelfEncoding();
-    }
+    private List<Text> buildTooltipFromServer(int slot) {
+        List<Text> tooltip = new ArrayList<>();
 
-    public int getActiveMaskProp(){
-        return this.properties.get(ACTIVE_MASK_PROP);
-    }
+        ItemStack stack = bookshelves.get(getBookshelfInViewProp()).getStack(slot);
 
-    public int getPresentMaskProp(){
-        return this.properties.get(PRESENT_MASK_PROP);
+        if (stack.isEmpty()) {
+            return tooltip;
+        }
+
+        if (stack.isOf(Items.ENCHANTED_BOOK)) {
+            tooltip.add(stack.getName().copy().formatted(Formatting.AQUA));
+            var enchants = EnchantmentHelper.getEnchantments(stack);
+
+            if (enchants.isEmpty()) {
+                tooltip.add(Text.literal("No Enchantments").formatted(Formatting.DARK_GRAY));
+            } else {
+                for (var entry : enchants.getEnchantmentEntries()) {
+                    int level = entry.getIntValue();
+
+                    Text line = Enchantment.getName(entry.getKey(),level).copy().formatted(Formatting.GRAY);
+
+                    tooltip.add(line);
+                }
+            }
+        }
+        else{
+            tooltip.add(stack.getName().copy().formatted(Formatting.WHITE));
+        }
+        return tooltip;
     }
 
     @Override
@@ -152,7 +216,8 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
             int n = bookshelves.size();
             int next = Math.floorMod(getBookshelfInViewProp() + 1, bookshelves.size());
             setBookshelfInViewProp(next);
-            sendContentUpdates();
+            updateBookshelfEncoding();
+            sendTooltipPacket((ServerPlayerEntity) player);
             return true;
         }
         //pg down
@@ -160,20 +225,26 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
             int n = bookshelves.size();
             int next = Math.floorMod(getBookshelfInViewProp() - 1, bookshelves.size());
             setBookshelfInViewProp(next);
-            sendContentUpdates();
+            updateBookshelfEncoding();
+            sendTooltipPacket((ServerPlayerEntity) player);
             return true;
         }
         //book
-        else if (id > 0 && id < 6){
+        else if (id >= 0 && id < 6){
 
-            // TODO
-
+            handleBookClick(id);
         }
         else{
             throw new IllegalArgumentException("an invalid button id was called");
         }
 
         return super.onButtonClick(player, id);
+    }
+
+    private void handleBookClick(int index){
+
+
+
     }
 
     public static boolean canAccessBookshelves(World world, BlockPos blockPos, BlockPos offset){

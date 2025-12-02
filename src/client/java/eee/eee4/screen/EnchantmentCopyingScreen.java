@@ -1,7 +1,9 @@
 package eee.eee4.screen;
 
 import eee.eee4.EEE;
+import eee.eee4.networking.s2c.BookTooltipPayload;
 import eee.eee4.screenHandler.EnchantmentCopyingScreenHandler;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
@@ -16,9 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingScreenHandler> {
-
-    //private static final Identifier[] LEVEL_TEXTURES = new Identifier[]{Identifier.ofVanilla("container/enchanting_table/level_1"), Identifier.ofVanilla("container/enchanting_table/level_2"), Identifier.ofVanilla("container/enchanting_table/level_3")};
-    //private static final Identifier[] LEVEL_DISABLED_TEXTURES = new Identifier[]{Identifier.ofVanilla("container/enchanting_table/level_1_disabled"), Identifier.ofVanilla("container/enchanting_table/level_2_disabled"), Identifier.ofVanilla("container/enchanting_table/level_3_disabled")};
 
     private static final Identifier BG_TEXTURE = Identifier.of(EEE.MOD_ID, "textures/gui/container/enchantment_copying.png");
     private static final Identifier BOOKSHELF_TEXTURE = Identifier.of(EEE.MOD_ID, "textures/gui/sprites/container/enchantment_copying/bookshelf_bg.png");
@@ -37,6 +36,9 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
     private static final int PGUP_Y = 25;
     private static final int PGDOWN_Y = 44;
 
+
+    public static final List<List<Text>> CLIENT_TOOLTIPS = new ArrayList<>();
+
     public EnchantmentCopyingScreen(
             EnchantmentCopyingScreenHandler handler,
             PlayerInventory playerInventory,
@@ -52,6 +54,7 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
 
         this.playerInventoryTitleX = 9;
         this.playerInventoryTitleY = this.backgroundHeight - 94;
+
 
 
     }
@@ -195,10 +198,14 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
 
             if (isMouseOverBook(mouseX, mouseY, i) && present) {
 
-                List<Text> tooltip = new ArrayList<>();
-                tooltip.add(Text.literal("Enchantment Slot " + (i + 1)));
-                context.drawTooltip(this.textRenderer, tooltip, mouseX, mouseY);
-                return;
+                if (i < CLIENT_TOOLTIPS.size()) {
+                    List<Text> tooltip = CLIENT_TOOLTIPS.get(i);
+
+                    if (tooltip != null && !tooltip.isEmpty()) {
+                        context.drawTooltip(this.textRenderer, tooltip, mouseX, mouseY);
+                        return;
+                    }
+                }
 
             }
         }
