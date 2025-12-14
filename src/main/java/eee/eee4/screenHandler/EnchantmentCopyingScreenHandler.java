@@ -180,6 +180,10 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
     private List<Text> buildTooltipFromServer(int slot) {
         List<Text> tooltip = new ArrayList<>();
 
+        if (bookshelves.isEmpty()) {
+            return tooltip;
+        }
+
         ItemStack stack = bookshelves.get(getBookshelfInViewProp()).getStack(slot);
 
         if (stack.isEmpty()) {
@@ -213,20 +217,24 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
         //pg up
         if (id == 7) {
-            int n = bookshelves.size();
-            int next = Math.floorMod(getBookshelfInViewProp() + 1, bookshelves.size());
-            setBookshelfInViewProp(next);
-            updateBookshelfEncoding();
-            sendTooltipPacket((ServerPlayerEntity) player);
+            if (!bookshelves.isEmpty()) {
+                int n = bookshelves.size();
+                int next = Math.floorMod(getBookshelfInViewProp() + 1, bookshelves.size());
+                setBookshelfInViewProp(next);
+                updateBookshelfEncoding();
+                sendTooltipPacket((ServerPlayerEntity) player);
+            }
             return true;
         }
         //pg down
         else if (id == 6){
-            int n = bookshelves.size();
-            int next = Math.floorMod(getBookshelfInViewProp() - 1, bookshelves.size());
-            setBookshelfInViewProp(next);
-            updateBookshelfEncoding();
-            sendTooltipPacket((ServerPlayerEntity) player);
+            if (!bookshelves.isEmpty()) {
+                int n = bookshelves.size();
+                int next = Math.floorMod(getBookshelfInViewProp() - 1, bookshelves.size());
+                setBookshelfInViewProp(next);
+                updateBookshelfEncoding();
+                sendTooltipPacket((ServerPlayerEntity) player);
+            }
             return true;
         }
         //book
