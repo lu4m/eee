@@ -1,5 +1,6 @@
 package eee.eee4.screenHandler;
 
+import eee.eee4.EEE;
 import eee.eee4.enchantment.EeeEnchantmentHelper;
 import eee.eee4.networking.BookSlotData;
 import eee.eee4.networking.s2c.BookSlotPayload;
@@ -41,6 +42,7 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
     private static final int ACTIVE_MASK_PROP = 1;
     private static final int PRESENT_MASK_PROP = 2;
     static final Identifier EMPTY_LAPIS_LAZULI_SLOT_TEXTURE = Identifier.ofVanilla("container/slot/lapis_lazuli");
+    static final Identifier EMPTY_BOOK_SLOT_TEXTURE = Identifier.of(EEE.MOD_ID,"container/slot/book");
 
     private static final int BOOK_SLOT = 0;
     private static final int LAPIS_SLOT = 1;
@@ -71,6 +73,10 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
             public boolean canInsert(ItemStack stack) {
                 return stack.isOf(Items.BOOK);
+            }
+
+            public Identifier getBackgroundSprite() {
+                return EMPTY_BOOK_SLOT_TEXTURE;
             }
         });
         this.addSlot(new Slot(this.inventory, 1, 13, 45) {
@@ -279,31 +285,36 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
     @Override
     public ItemStack quickMove(PlayerEntity player, int slotIndex) {
-        ItemStack slotStack = this.getSlot(slotIndex).getStack();
+        Slot slot = this.getSlot(slotIndex);
 
-        if (slotStack.isEmpty()){
+        if (!slot.hasStack()) {
             return ItemStack.EMPTY;
         }
 
-        if (slotIndex == BOOK_SLOT || slotIndex == LAPIS_SLOT){
-            this.insertItem(slotStack,PLAYER_INV_START,PLAYER_INV_END,true);
+        ItemStack original = slot.getStack();
+        ItemStack copy = original.copy();
+
+        boolean moved = false;
+
+        if (slotIndex == BOOK_SLOT || slotIndex == LAPIS_SLOT) {
+            moved = this.insertItem(original, PLAYER_INV_START, PLAYER_INV_END, true);
+        }
+        else if (original.isOf(Items.LAPIS_LAZULI)) {
+            moved = this.insertItem(original, LAPIS_SLOT, LAPIS_SLOT + 1, false);
+        }
+        else if (original.isOf(Items.BOOK)) {
+            moved = this.insertItem(original, BOOK_SLOT, BOOK_SLOT + 1, false);
+        }
+
+        if (!moved) {
             return ItemStack.EMPTY;
         }
 
-        if (slotStack.isOf(Items.LAPIS_LAZULI)){
-            this.getSlot(LAPIS_SLOT).insertStack(slotStack);
-            return ItemStack.EMPTY;
-        }
+        slot.onQuickTransfer(original, copy);
 
-        if (slotStack.isOf(Items.BOOK)){
-            this.getSlot(BOOK_SLOT).insertStack(slotStack);
-            return ItemStack.EMPTY;
-        }
-
-        // quick move on normal inventory items: do nothing
-        return ItemStack.EMPTY;
-
+        return copy;
     }
+
 
 
 }
