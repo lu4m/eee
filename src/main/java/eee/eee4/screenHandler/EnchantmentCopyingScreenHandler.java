@@ -1,41 +1,27 @@
 package eee.eee4.screenHandler;
 
-import eee.eee4.EEE;
 import eee.eee4.enchantment.EeeEnchantmentHelper;
 import eee.eee4.networking.BookSlotData;
 import eee.eee4.networking.s2c.BookSlotPayload;
 import eee.eee4.registry.EEEBlocks;
 import eee.eee4.registry.EEEScreenHandlers;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.EnchantingTableBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ChiseledBookshelfBlockEntity;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.network.packet.c2s.common.CustomPayloadC2SPacket;
 import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.StyleSpriteSource;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.apache.logging.log4j.core.jmx.Server;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -96,11 +82,10 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         else{
             this.setBookshelfInViewProp(-1);
         }
-
         // initial state update
         context.run((world, pos) -> {
             if (playerInventory.player instanceof ServerPlayerEntity serverPlayer){
-                update(serverPlayer);
+                updateState(serverPlayer);
             }
         });
 
@@ -149,12 +134,6 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
     private void updateBookshelfEncoding(ServerPlayerEntity player) {
         int index = getBookshelfInViewProp();
 
-        if (index < 0 || index >= bookshelves.size()) {
-            properties.set(ACTIVE_MASK_PROP, 0);
-            properties.set(PRESENT_MASK_PROP, 0);
-            return;
-        }
-
         ChiseledBookshelfBlockEntity shelf = bookshelves.get(index);
 
         int activeMask = 0;
@@ -178,16 +157,11 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         properties.set(ACTIVE_MASK_PROP, activeMask);
         properties.set(PRESENT_MASK_PROP, presentMask);
         sendContentUpdates();
-
-
+        
     }
 
     private void sendTooltipPacket(ServerPlayerEntity player) {
         List<BookSlotData> books = new ArrayList<>();
-
-        if (bookshelves.isEmpty()){
-            return;
-        }
 
         for (int i = 0; i < 6; i++) {
 
@@ -203,32 +177,42 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         player.networkHandler.sendPacket(new CustomPayloadS2CPacket(bookPayload));
     }
 
-    private void update(ServerPlayerEntity player){
+    private void updateState(ServerPlayerEntity player){
+
+        if (bookshelves.isEmpty()){
+            return;
+        }
+
         updateXpCosts();
         updateBookshelfEncoding(player);
         sendTooltipPacket(player);
     }
 
-
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
         if (!(player instanceof ServerPlayerEntity serverPlayer)) return false;
 
-        // 7 is pgUp, 6 is pgDown
-        if (id == 7 || id == 6) {
-            setBookshelfInViewProp(
-                    Math.floorMod(getBookshelfInViewProp() + (id == 7 ? 1 : -1), bookshelves.size())
-            );
 
-            update(serverPlayer);
-        }
-        else{
-            handleBookClick(id);
+        if (!bookshelves.isEmpty()) {
+            // pgUp
+            if (id == 7) {
+                setBookshelfInViewProp(
+                        Math.floorMod(getBookshelfInViewProp() + 1, bookshelves.size())
+                );
+            }
+            // pgDown
+            else if (id == 6) {
+                setBookshelfInViewProp(
+                        Math.floorMod(getBookshelfInViewProp() - 1, bookshelves.size())
+                );
+            } else {
+                handleBookClick(id);
+            }
+            updateState(serverPlayer);
         }
 
         return super.onButtonClick(player, id);
     }
-
 
     private void handleBookClick(int index){
 
