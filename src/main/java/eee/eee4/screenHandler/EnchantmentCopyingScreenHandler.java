@@ -35,6 +35,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.apache.logging.log4j.core.jmx.Server;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,7 +91,7 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
         if (!this.bookshelves.isEmpty()) {
             this.setBookshelfInViewProp(0);
-            updateXpCosts();
+
         }
         else{
             this.setBookshelfInViewProp(-1);
@@ -99,12 +100,9 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         // initial state update
         context.run((world, pos) -> {
             if (playerInventory.player instanceof ServerPlayerEntity serverPlayer){
-                updateBookshelfEncoding(serverPlayer);
-                sendTooltipPacket(serverPlayer);
+                update(serverPlayer);
             }
         });
-
-
 
     }
 
@@ -205,6 +203,13 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         player.networkHandler.sendPacket(new CustomPayloadS2CPacket(bookPayload));
     }
 
+    private void update(ServerPlayerEntity player){
+        updateXpCosts();
+        updateBookshelfEncoding(player);
+        sendTooltipPacket(player);
+    }
+
+
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
         if (!(player instanceof ServerPlayerEntity serverPlayer)) return false;
@@ -215,10 +220,7 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
                     Math.floorMod(getBookshelfInViewProp() + (id == 7 ? 1 : -1), bookshelves.size())
             );
 
-            updateXpCosts();
-            updateBookshelfEncoding(serverPlayer);
-            sendTooltipPacket(serverPlayer);
-            return true;
+            update(serverPlayer);
         }
         else{
             handleBookClick(id);

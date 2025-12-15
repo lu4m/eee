@@ -3,19 +3,14 @@ package eee.eee4.screen;
 import eee.eee4.EEE;
 import eee.eee4.networking.BookSlotData;
 import eee.eee4.screenHandler.EnchantmentCopyingScreenHandler;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextContent;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,8 +53,58 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
         this.playerInventoryTitleX = 9;
         this.playerInventoryTitleY = this.backgroundHeight - 94;
 
+    }
 
+    private boolean isMouseOverPgUp( int mouseX, int mouseY){
+        return mouseX >= PG_X+this.x && mouseX <= PG_X+this.x+14
+                && mouseY >= PGUP_Y+this.y && mouseY <= PGUP_Y+this.y+14;
+    }
 
+    private boolean isMouseOverPgDown( int mouseX, int mouseY){
+        return mouseX >= PG_X+this.x && mouseX <= PG_X+this.x+14
+                && mouseY >= PGDOWN_Y+this.y && mouseY <= PGDOWN_Y+this.y+14;
+    }
+
+    private boolean isMouseOverBook( int mouseX, int mouseY,int bookIndex){
+
+        int startingPointXTexture = bookIndex * (BOOK_WIDTH+2);
+        int startingPointXScreen = this.x + BOOKSHELF_X + 4 + startingPointXTexture;
+        int startingPointY = this.y+BOOKSHELF_Y+16;
+
+        return mouseX >= startingPointXScreen && mouseX <= startingPointXScreen + BOOK_WIDTH
+                && mouseY >= startingPointY && mouseY <= startingPointY + BOOK_HEIGHT;
+    }
+
+    private boolean isSlotPresent(int id){
+        int presentMask = this.handler.getPresentMaskProp();
+        return (presentMask & (1 << id)) != 0;
+    }
+
+    private boolean isSlotActive(int id){
+        int activeMask = this.handler.getActiveMaskProp();
+        return (activeMask & (1 << id)) != 0;
+    }
+
+    @Override
+    public boolean mouseClicked(Click click, boolean doubled){
+        int click_y = (int) Math.round(click.y());
+        int click_x = (int) Math.round(click.x());
+
+        for (int i = 0; i<6; i++){
+            if (isMouseOverBook(click_x,click_y,i)){
+                this.client.interactionManager.clickButton(this.handler.syncId, i);
+            }
+        }
+
+        if (isMouseOverPgDown(click_x,click_y)){
+            this.client.interactionManager.clickButton(this.handler.syncId, 6);
+        }
+
+        if (isMouseOverPgUp(click_x,click_y)){
+            this.client.interactionManager.clickButton(this.handler.syncId, 7);
+        }
+
+        return super.mouseClicked(click, doubled);
     }
 
     @Override
@@ -84,8 +129,6 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
 
     }
 
-
-
     private void drawBookshelf(DrawContext context, int mouseX, int mouseY) {
 
         context.drawTexture(RenderPipelines.GUI_TEXTURED,BOOKSHELF_TEXTURE,
@@ -97,35 +140,12 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
                 this.x+BOOKSHELF_X + 4,this.y+BOOKSHELF_Y + 4,0xFFDEDEDE,true
         );
 
-
         for(int i = 0; i < 6; i++){
-
-            int presentMask = this.handler.getPresentMaskProp();
-            boolean present = (presentMask & (1 << i)) != 0;
-
-            if(present) {
-                int activeMask = this.handler.getActiveMaskProp();
-                boolean active = (activeMask & (1 << i)) != 0;
-                drawBook(context, mouseX, mouseY, i, active);
+            if(isSlotPresent(i)) {
+                drawBook(context, mouseX, mouseY, i, isSlotActive(i));
             }
-
         }
 
-    }
-
-    private boolean isMouseOverBook( int mouseX, int mouseY,int bookIndex){
-
-        int startingPointXTexture = bookIndex * (BOOK_WIDTH+2);
-        int startingPointXScreen = this.x + BOOKSHELF_X + 4 + startingPointXTexture;
-        int startingPointY = this.y+BOOKSHELF_Y+16;
-
-        return mouseX >= startingPointXScreen && mouseX <= startingPointXScreen + BOOK_WIDTH
-                && mouseY >= startingPointY && mouseY <= startingPointY + BOOK_HEIGHT;
-    }
-
-    private boolean isMouseOverPgDown( int mouseX, int mouseY){
-        return mouseX >= PG_X+this.x && mouseX <= PG_X+this.x+14
-                && mouseY >= PGDOWN_Y+this.y && mouseY <= PGDOWN_Y+this.y+14;
     }
 
     private void drawPgDown(DrawContext context,int mouseX, int mouseY){
@@ -134,11 +154,6 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
         if (isMouseOverPgDown(mouseX,mouseY)){
             context.drawStrokedRectangle(PG_X+this.x,PGDOWN_Y+this.y,14,14,0x80FFFFFF);
         }
-    }
-
-    private boolean isMouseOverPgUp( int mouseX, int mouseY){
-        return mouseX >= PG_X+this.x && mouseX <= PG_X+this.x+14
-                && mouseY >= PGUP_Y+this.y && mouseY <= PGUP_Y+this.y+14;
     }
 
     private void drawPgUp(DrawContext context,int mouseX, int mouseY){
@@ -196,13 +211,7 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
 
         for (int i = 0; i < 6; i++) {
 
-            int presentMask = this.handler.getPresentMaskProp();
-            boolean present = (presentMask & (1 << i)) != 0;
-
-            int activeMask = this.handler.getActiveMaskProp();
-            boolean active = (activeMask & (1 << i)) != 0;
-
-            if (isMouseOverBook(mouseX, mouseY, i) && present) {
+            if (isMouseOverBook(mouseX, mouseY, i) && isSlotPresent(i)) {
 
                 if (i < CLIENT_BOOKS_SLOTS_DATA.size()) {
                     // localCopy
@@ -211,7 +220,7 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
                     int xpCost = CLIENT_BOOKS_SLOTS_DATA.get(i).xpCost();
 
                     if (xpCost > 0) {
-                        Formatting color = active ? Formatting.GREEN : Formatting.DARK_GRAY;
+                        Formatting color = isSlotActive(i) ? Formatting.GREEN : Formatting.DARK_GRAY;
                         Text xpText = Text.literal(
                                         "XP cost" + ": " + String.valueOf(CLIENT_BOOKS_SLOTS_DATA.get(i).xpCost())
                                 )
@@ -229,27 +238,4 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
         }
     }
 
-
-    @Override
-    public boolean mouseClicked(Click click, boolean doubled){
-        int click_y = (int) Math.round(click.y());
-        int click_x = (int) Math.round(click.x());
-
-        for (int i = 0; i<6; i++){
-            if (isMouseOverBook(click_x,click_y,i)){
-                this.client.interactionManager.clickButton(this.handler.syncId, i);
-            }
-        }
-
-        if (isMouseOverPgDown(click_x,click_y)){
-            this.client.interactionManager.clickButton(this.handler.syncId, 6);
-        }
-
-        if (isMouseOverPgUp(click_x,click_y)){
-            this.client.interactionManager.clickButton(this.handler.syncId, 7);
-        }
-
-
-        return super.mouseClicked(click, doubled);
-    }
 }
