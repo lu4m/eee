@@ -8,6 +8,7 @@ import eee.eee4.registry.EEEScreenHandlers;
 import net.minecraft.block.EnchantingTableBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ChiseledBookshelfBlockEntity;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -20,6 +21,7 @@ import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -38,6 +40,13 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
     private static final int BOOKSHELF_IN_VIEW_PROP = 0;
     private static final int ACTIVE_MASK_PROP = 1;
     private static final int PRESENT_MASK_PROP = 2;
+    static final Identifier EMPTY_LAPIS_LAZULI_SLOT_TEXTURE = Identifier.ofVanilla("container/slot/lapis_lazuli");
+
+    private static final int BOOK_SLOT = 0;
+    private static final int LAPIS_SLOT = 1;
+    private static final int PLAYER_INV_START = 2;
+    private static final int PLAYER_INV_END = 38;
+
 
     public EnchantmentCopyingScreenHandler(int syncId, PlayerInventory playerInventory) {
         this(syncId, playerInventory, ScreenHandlerContext.EMPTY);
@@ -59,12 +68,19 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
             public int getMaxItemCount() {
                 return 1;
             }
+
+            public boolean canInsert(ItemStack stack) {
+                return stack.isOf(Items.BOOK);
+            }
         });
         this.addSlot(new Slot(this.inventory, 1, 13, 45) {
             public boolean canInsert(ItemStack stack) {
-                return stack.isOf(Items.BLACK_DYE);
+                return stack.isOf(Items.LAPIS_LAZULI);
             }
 
+            public Identifier getBackgroundSprite() {
+                return EMPTY_LAPIS_LAZULI_SLOT_TEXTURE;
+            }
         });
 
         this.addPlayerSlots(playerInventory, 8, 80);
@@ -77,7 +93,6 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
         if (!this.bookshelves.isEmpty()) {
             this.setBookshelfInViewProp(0);
-
         }
         else{
             this.setBookshelfInViewProp(-1);
@@ -147,7 +162,7 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
                 if (
                         stack.isOf(Items.ENCHANTED_BOOK) &&
-                                (player.experienceLevel >= currentBooksXpCosts[i] || player.isInCreativeMode())
+                                (player.experienceLevel >= currentBooksXpCosts[i] || player.getAbilities().creativeMode)
                 ){
                     activeMask |= (1 << i);
                 }
@@ -157,7 +172,7 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         properties.set(ACTIVE_MASK_PROP, activeMask);
         properties.set(PRESENT_MASK_PROP, presentMask);
         sendContentUpdates();
-        
+
     }
 
     private void sendTooltipPacket(ServerPlayerEntity player) {
@@ -206,7 +221,7 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
                         Math.floorMod(getBookshelfInViewProp() - 1, bookshelves.size())
                 );
             } else {
-                handleBookClick(id);
+                handleBookClick(id,player);
             }
             updateState(serverPlayer);
         }
@@ -214,9 +229,34 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         return super.onButtonClick(player, id);
     }
 
-    private void handleBookClick(int index){
+    private void handleBookClick(int index, PlayerEntity player){
 
-        // TODO
+        ItemStack selected = bookshelves.get(getBookshelfInViewProp()).getStack(index);
+
+        if (!selected.isOf(Items.ENCHANTED_BOOK)) return;
+
+        ItemStack book  = inventory.getStack(0);
+        ItemStack lapis = inventory.getStack(1);
+
+        boolean freeXp = player.getAbilities().creativeMode;
+        boolean xpCondition = freeXp || player.experienceLevel >= currentBooksXpCosts[index];
+        boolean bookCondition = book.isOf(Items.BOOK) && book.getCount() >= 1;
+        boolean lapisCondition = lapis.isOf(Items.LAPIS_LAZULI)  && lapis.getCount() >= 1;
+
+        if ( !(lapisCondition && bookCondition && xpCondition)) return;
+
+        lapis.decrement(1);
+        if (!freeXp){
+            player.addExperience(-80);
+        }
+
+        ItemStack copy = new ItemStack(Items.ENCHANTED_BOOK);
+        EnchantmentHelper.set(
+                copy,EnchantmentHelper.getEnchantments(selected)
+        );
+        copy.setCount(1);
+
+        inventory.setStack(0,copy);
 
     }
 
@@ -239,10 +279,31 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
     @Override
     public ItemStack quickMove(PlayerEntity player, int slotIndex) {
+        ItemStack slotStack = this.getSlot(slotIndex).getStack();
 
-        // TODO
+        if (slotStack.isEmpty()){
+            return ItemStack.EMPTY;
+        }
 
+        if (slotIndex == BOOK_SLOT || slotIndex == LAPIS_SLOT){
+            this.insertItem(slotStack,PLAYER_INV_START,PLAYER_INV_END,true);
+            return ItemStack.EMPTY;
+        }
+
+        if (slotStack.isOf(Items.LAPIS_LAZULI)){
+            this.getSlot(LAPIS_SLOT).insertStack(slotStack);
+            return ItemStack.EMPTY;
+        }
+
+        if (slotStack.isOf(Items.BOOK)){
+            this.getSlot(BOOK_SLOT).insertStack(slotStack);
+            return ItemStack.EMPTY;
+        }
+
+        // quick move on normal inventory items: do nothing
         return ItemStack.EMPTY;
+
     }
+
 
 }
