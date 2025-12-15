@@ -35,7 +35,7 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
     private final ScreenHandlerContext context;
 
     private List<ChiseledBookshelfBlockEntity> bookshelves;
-    private int[] currentBooksXpCosts = {-1,-1,-1,-1,-1,-1};
+    private final int[] currentBooksXpCosts = {-1,-1,-1,-1,-1,-1};
 
     private final PropertyDelegate properties;
     private static final int BOOKSHELF_IN_VIEW_PROP = 0;
@@ -129,7 +129,7 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
     }
 
     private void scanBookshelves() {
-        this.bookshelves = new ArrayList<ChiseledBookshelfBlockEntity>();
+        this.bookshelves = new ArrayList<>();
 
         this.context.run((world, blockpos) -> {
             for (BlockPos offset : EnchantingTableBlock.POWER_PROVIDER_OFFSETS) {
@@ -278,9 +278,9 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
     @Override
     public void onClosed(PlayerEntity player) {
         super.onClosed(player);
-        this.context.run((world, pos) -> {
-            this.dropInventory(player, this.inventory);
-        });
+        this.context.run((world, pos) ->
+                this.dropInventory(player, this.inventory)
+        );
     }
 
     @Override

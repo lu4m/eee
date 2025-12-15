@@ -222,13 +222,13 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
                     if (xpCost > 0) {
                         Formatting color = isSlotActive(i) ? Formatting.GREEN : Formatting.DARK_GRAY;
                         Text xpText = Text.literal(
-                                        "XP " + ": " + String.valueOf(CLIENT_BOOKS_SLOTS_DATA.get(i).xpCost())
+                                        "XP " + ": " + CLIENT_BOOKS_SLOTS_DATA.get(i).xpCost()
                                 )
                                 .formatted(color);
 
                         tooltip.add(xpText);
                     }
-                    if (tooltip != null && !tooltip.isEmpty()) {
+                    if (!tooltip.isEmpty()) {
                         context.drawTooltip(this.textRenderer, tooltip, mouseX, mouseY);
                         return;
                     }

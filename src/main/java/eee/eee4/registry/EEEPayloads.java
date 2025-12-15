@@ -1,9 +1,7 @@
 package eee.eee4.registry;
 
 import eee.eee4.networking.s2c.BookSlotPayload;
-import eee.eee4.networking.s2c.BookSlotPayload;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.minecraft.registry.Registry;
 
 public class EEEPayloads {
 
