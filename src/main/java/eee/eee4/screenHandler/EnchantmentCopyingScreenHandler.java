@@ -1,6 +1,7 @@
 package eee.eee4.screenHandler;
 
 import eee.eee4.EEE;
+import eee.eee4.enchantment.EeeEnchantmentHelper;
 import eee.eee4.networking.BookSlotData;
 import eee.eee4.networking.s2c.BookSlotPayload;
 import eee.eee4.registry.EEEBlocks;
@@ -44,6 +45,7 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
     private final ScreenHandlerContext context;
 
     private List<ChiseledBookshelfBlockEntity> bookshelves;
+    private int[] currentBooksXpCosts = {-1,-1,-1,-1,-1,-1};
 
     private final PropertyDelegate properties;
     private static final int BOOKSHELF_IN_VIEW_PROP = 0;
@@ -88,6 +90,7 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
         if (!this.bookshelves.isEmpty()) {
             this.setBookshelfInViewProp(0);
+            updateXpCosts();
         }
         else{
             this.setBookshelfInViewProp(-1);
@@ -96,10 +99,12 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         // initial state update
         context.run((world, pos) -> {
             if (playerInventory.player instanceof ServerPlayerEntity serverPlayer){
-                updateBookshelfEncoding();
+                updateBookshelfEncoding(serverPlayer);
                 sendTooltipPacket(serverPlayer);
             }
         });
+
+
 
     }
 
@@ -130,9 +135,20 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
                 }
             }
         });
+
     }
 
-    private void updateBookshelfEncoding() {
+    private void updateXpCosts(){
+        for (int i = 0; i<6; i++){
+            ItemStack stack = bookshelves.get(getBookshelfInViewProp()).getStack(i);
+            currentBooksXpCosts[i] = -1;
+            if (stack.isOf(Items.ENCHANTED_BOOK)){
+               currentBooksXpCosts[i] = EeeEnchantmentHelper.xpCost(stack);
+            }
+        }
+    }
+
+    private void updateBookshelfEncoding(ServerPlayerEntity player) {
         int index = getBookshelfInViewProp();
 
         if (index < 0 || index >= bookshelves.size()) {
@@ -152,8 +168,10 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
             if (!stack.isEmpty()) {
                 presentMask |= (1 << i);
 
-
-                if (stack.isOf(Items.ENCHANTED_BOOK)) {
+                if (
+                        stack.isOf(Items.ENCHANTED_BOOK) &&
+                                (player.experienceLevel >= currentBooksXpCosts[i] || player.isInCreativeMode())
+                ){
                     activeMask |= (1 << i);
                 }
             }
@@ -169,8 +187,16 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
     private void sendTooltipPacket(ServerPlayerEntity player) {
         List<BookSlotData> books = new ArrayList<>();
 
+        if (bookshelves.isEmpty()){
+            return;
+        }
+
         for (int i = 0; i < 6; i++) {
-            BookSlotData bd = new BookSlotData(buildTooltipFromServer(i),12+i);
+
+            List<Text> toolTip = EeeEnchantmentHelper.buildEnchantmentCopyingTooltip(bookshelves
+                    .get(getBookshelfInViewProp()).getStack(i));
+
+            BookSlotData bd = new BookSlotData(toolTip,currentBooksXpCosts[i]);
             books.add(bd);
         }
 
@@ -179,81 +205,32 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         player.networkHandler.sendPacket(new CustomPayloadS2CPacket(bookPayload));
     }
 
-    private List<Text> buildTooltipFromServer(int slot) {
-        List<Text> tooltip = new ArrayList<>();
-
-        if (bookshelves.isEmpty()) {
-            return tooltip;
-        }
-
-        ItemStack stack = bookshelves.get(getBookshelfInViewProp()).getStack(slot);
-
-        if (stack.isEmpty()) {
-            return tooltip;
-        }
-
-        if (stack.isOf(Items.ENCHANTED_BOOK)) {
-            tooltip.add(stack.getName().copy().formatted(Formatting.AQUA));
-            var enchants = EnchantmentHelper.getEnchantments(stack);
-
-            if (enchants.isEmpty()) {
-                tooltip.add(Text.literal("No Enchantments").formatted(Formatting.DARK_GRAY));
-            } else {
-                for (var entry : enchants.getEnchantmentEntries()) {
-                    int level = entry.getIntValue();
-
-                    Text line = Enchantment.getName(entry.getKey(),level).copy().formatted(Formatting.GRAY);
-
-                    tooltip.add(line);
-                }
-            }
-        }
-        else{
-            tooltip.add(stack.getName().copy().formatted(Formatting.WHITE));
-        }
-        return tooltip;
-    }
-
     @Override
     public boolean onButtonClick(PlayerEntity player, int id) {
+        if (!(player instanceof ServerPlayerEntity serverPlayer)) return false;
 
-        //pg up
-        if (id == 7) {
-            if (!bookshelves.isEmpty()) {
-                int n = bookshelves.size();
-                int next = Math.floorMod(getBookshelfInViewProp() + 1, bookshelves.size());
-                setBookshelfInViewProp(next);
-                updateBookshelfEncoding();
-                sendTooltipPacket((ServerPlayerEntity) player);
-            }
-            return true;
-        }
-        //pg down
-        else if (id == 6){
-            if (!bookshelves.isEmpty()) {
-                int n = bookshelves.size();
-                int next = Math.floorMod(getBookshelfInViewProp() - 1, bookshelves.size());
-                setBookshelfInViewProp(next);
-                updateBookshelfEncoding();
-                sendTooltipPacket((ServerPlayerEntity) player);
-            }
-            return true;
-        }
-        //book
-        else if (id >= 0 && id < 6){
+        // 7 is pgUp, 6 is pgDown
+        if (id == 7 || id == 6) {
+            setBookshelfInViewProp(
+                    Math.floorMod(getBookshelfInViewProp() + (id == 7 ? 1 : -1), bookshelves.size())
+            );
 
-            handleBookClick(id);
+            updateXpCosts();
+            updateBookshelfEncoding(serverPlayer);
+            sendTooltipPacket(serverPlayer);
+            return true;
         }
         else{
-            throw new IllegalArgumentException("an invalid button id was called");
+            handleBookClick(id);
         }
 
         return super.onButtonClick(player, id);
     }
 
+
     private void handleBookClick(int index){
 
-
+        // TODO
 
     }
 

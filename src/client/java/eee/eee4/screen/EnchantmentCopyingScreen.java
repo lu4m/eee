@@ -93,7 +93,7 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
                 0.0F,0.0F,114,47,114,47
             );
 
-        context.drawText(this.textRenderer,"Bookshelf "+( this.handler.getBookshelfInViewProp() +1),
+        context.drawText(this.textRenderer,"Bookshelf"+" "+( this.handler.getBookshelfInViewProp() +1),
                 this.x+BOOKSHELF_X + 4,this.y+BOOKSHELF_Y + 4,0xFFDEDEDE,true
         );
 
@@ -199,15 +199,26 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
             int presentMask = this.handler.getPresentMaskProp();
             boolean present = (presentMask & (1 << i)) != 0;
 
+            int activeMask = this.handler.getActiveMaskProp();
+            boolean active = (activeMask & (1 << i)) != 0;
+
             if (isMouseOverBook(mouseX, mouseY, i) && present) {
 
                 if (i < CLIENT_BOOKS_SLOTS_DATA.size()) {
                     // localCopy
                     List<Text> tooltip = new ArrayList<>(CLIENT_BOOKS_SLOTS_DATA.get(i).tooltip());
 
-                    Text xpText = Text.literal(String.valueOf(CLIENT_BOOKS_SLOTS_DATA.get(i).xpCost())).formatted(Formatting.GREEN);
-                    tooltip.add(xpText);
+                    int xpCost = CLIENT_BOOKS_SLOTS_DATA.get(i).xpCost();
 
+                    if (xpCost > 0) {
+                        Formatting color = active ? Formatting.GREEN : Formatting.DARK_GRAY;
+                        Text xpText = Text.literal(
+                                        "XP cost" + ": " + String.valueOf(CLIENT_BOOKS_SLOTS_DATA.get(i).xpCost())
+                                )
+                                .formatted(color);
+
+                        tooltip.add(xpText);
+                    }
                     if (tooltip != null && !tooltip.isEmpty()) {
                         context.drawTooltip(this.textRenderer, tooltip, mouseX, mouseY);
                         return;
