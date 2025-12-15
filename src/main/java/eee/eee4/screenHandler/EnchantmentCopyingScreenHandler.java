@@ -1,7 +1,8 @@
 package eee.eee4.screenHandler;
 
 import eee.eee4.EEE;
-import eee.eee4.networking.s2c.BookTooltipPayload;
+import eee.eee4.networking.BookSlotData;
+import eee.eee4.networking.s2c.BookSlotPayload;
 import eee.eee4.registry.EEEBlocks;
 import eee.eee4.registry.EEEScreenHandlers;
 import net.fabricmc.api.EnvType;
@@ -166,15 +167,16 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
     }
 
     private void sendTooltipPacket(ServerPlayerEntity player) {
-        List<List<Text>> all = new ArrayList<>();
+        List<BookSlotData> books = new ArrayList<>();
 
         for (int i = 0; i < 6; i++) {
-            all.add(buildTooltipFromServer(i));
+            BookSlotData bd = new BookSlotData(buildTooltipFromServer(i),12+i);
+            books.add(bd);
         }
 
-        BookTooltipPayload payload = new BookTooltipPayload(all);
+        BookSlotPayload bookPayload = new BookSlotPayload(books);
 
-        player.networkHandler.sendPacket(new CustomPayloadS2CPacket(payload));
+        player.networkHandler.sendPacket(new CustomPayloadS2CPacket(bookPayload));
     }
 
     private List<Text> buildTooltipFromServer(int slot) {

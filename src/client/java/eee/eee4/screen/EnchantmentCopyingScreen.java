@@ -1,7 +1,7 @@
 package eee.eee4.screen;
 
 import eee.eee4.EEE;
-import eee.eee4.networking.s2c.BookTooltipPayload;
+import eee.eee4.networking.BookSlotData;
 import eee.eee4.screenHandler.EnchantmentCopyingScreenHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gl.RenderPipelines;
@@ -9,7 +9,10 @@ import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextContent;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +40,7 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
     private static final int PGDOWN_Y = 44;
 
 
-    public static final List<List<Text>> CLIENT_TOOLTIPS = new ArrayList<>();
+    public static final List<BookSlotData> CLIENT_BOOKS_SLOTS_DATA = new ArrayList<>();
 
     public EnchantmentCopyingScreen(
             EnchantmentCopyingScreenHandler handler,
@@ -198,8 +201,12 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
 
             if (isMouseOverBook(mouseX, mouseY, i) && present) {
 
-                if (i < CLIENT_TOOLTIPS.size()) {
-                    List<Text> tooltip = CLIENT_TOOLTIPS.get(i);
+                if (i < CLIENT_BOOKS_SLOTS_DATA.size()) {
+                    // localCopy
+                    List<Text> tooltip = new ArrayList<>(CLIENT_BOOKS_SLOTS_DATA.get(i).tooltip());
+
+                    Text xpText = Text.literal(String.valueOf(CLIENT_BOOKS_SLOTS_DATA.get(i).xpCost())).formatted(Formatting.GREEN);
+                    tooltip.add(xpText);
 
                     if (tooltip != null && !tooltip.isEmpty()) {
                         context.drawTooltip(this.textRenderer, tooltip, mouseX, mouseY);

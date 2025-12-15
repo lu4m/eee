@@ -1,6 +1,6 @@
 package eee.eee4;
 
-import eee.eee4.networking.s2c.BookTooltipPayload;
+import eee.eee4.networking.s2c.BookSlotPayload;
 import eee.eee4.registry.EEEScreenHandlers;
 import eee.eee4.screen.EnchantmentCopyingScreen;
 import eee.eee4.screenHandler.EnchantmentCopyingScreenHandler;
@@ -20,11 +20,11 @@ public class EeeClient implements ClientModInitializer {
         HandledScreens.register(EEEScreenHandlers.ENCHANTMENT_COPYING_SCREEN_HANDLER, EnchantmentCopyingScreen::new);
 
         ClientPlayNetworking.registerGlobalReceiver(
-                BookTooltipPayload.ID,
+                BookSlotPayload.ID,
                 (payload, context) -> {
                     context.client().execute(() -> {
-                        EnchantmentCopyingScreen.CLIENT_TOOLTIPS.clear();
-                        EnchantmentCopyingScreen.CLIENT_TOOLTIPS.addAll(payload.tooltips());
+                        EnchantmentCopyingScreen.CLIENT_BOOKS_SLOTS_DATA.clear();
+                        EnchantmentCopyingScreen.CLIENT_BOOKS_SLOTS_DATA.addAll(payload.books());
                     });
                 }
         );
