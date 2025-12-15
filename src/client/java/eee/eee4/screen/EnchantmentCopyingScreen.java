@@ -3,11 +3,15 @@ package eee.eee4.screen;
 import eee.eee4.EEE;
 import eee.eee4.networking.BookSlotData;
 import eee.eee4.screenHandler.EnchantmentCopyingScreenHandler;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
@@ -85,6 +89,16 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
         return (activeMask & (1 << id)) != 0;
     }
 
+    private void playClickSound() {
+        MinecraftClient.getInstance().getSoundManager().play(
+                PositionedSoundInstance.master(
+                        SoundEvents.UI_BUTTON_CLICK.value(),
+                        1.0f
+                )
+        );
+    }
+
+
     @Override
     public boolean mouseClicked(Click click, boolean doubled){
         int click_y = (int) Math.round(click.y());
@@ -98,10 +112,12 @@ public class EnchantmentCopyingScreen extends HandledScreen<EnchantmentCopyingSc
 
         if (isMouseOverPgDown(click_x,click_y)){
             this.client.interactionManager.clickButton(this.handler.syncId, 6);
+            playClickSound();
         }
 
         if (isMouseOverPgUp(click_x,click_y)){
             this.client.interactionManager.clickButton(this.handler.syncId, 7);
+            playClickSound();
         }
 
         return super.mouseClicked(click, doubled);

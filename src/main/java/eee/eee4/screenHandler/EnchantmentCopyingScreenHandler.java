@@ -10,6 +10,7 @@ import net.minecraft.block.EnchantingTableBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ChiseledBookshelfBlockEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -21,6 +22,8 @@ import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -241,8 +244,8 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
 
         if (!selected.isOf(Items.ENCHANTED_BOOK)) return;
 
-        ItemStack book  = inventory.getStack(0);
-        ItemStack lapis = inventory.getStack(1);
+        ItemStack book  = inventory.getStack(BOOK_SLOT);
+        ItemStack lapis = inventory.getStack(LAPIS_SLOT);
 
         boolean freeXp = player.getAbilities().creativeMode;
         boolean xpCondition = freeXp || player.experienceLevel >= currentBooksXpCosts[index];
@@ -262,9 +265,16 @@ public class EnchantmentCopyingScreenHandler extends ScreenHandler {
         );
         copy.setCount(1);
 
-        inventory.setStack(0,copy);
+        inventory.setStack(BOOK_SLOT,copy);
+
+        context.run(
+                (world, blockPos) ->
+                world.playSound( null, blockPos, SoundEvents.BLOCK_ENCHANTMENT_TABLE_USE,
+                        SoundCategory.BLOCKS, 1.0F, world.random.nextFloat() * 0.1F + 0.9F)
+        );
 
     }
+
 
     public static boolean canAccessBookshelves(World world, BlockPos blockPos, BlockPos offset){
         return world.getBlockState(blockPos.add(offset.getX() / 2, offset.getY(), offset.getZ() / 2)).isIn(BlockTags.ENCHANTMENT_POWER_TRANSMITTER);
