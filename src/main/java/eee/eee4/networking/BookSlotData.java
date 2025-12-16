@@ -1,10 +1,10 @@
 package eee.eee4.networking;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 import java.util.List;
 
 public record BookSlotData (
-        List<Text> tooltip,
+        List<Component> tooltip,
         int xpCost
 ) {}

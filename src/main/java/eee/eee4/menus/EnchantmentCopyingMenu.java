@@ -1,15 +1,16 @@
-package eee.eee4.screenHandler;
+package eee.eee4.menus;
 
 import eee.eee4.EEE;
 import eee.eee4.enchantment.EeeEnchantmentHelper;
 import eee.eee4.networking.BookSlotData;
 import eee.eee4.networking.s2c.BookSlotPayload;
 import eee.eee4.registry.EEEBlocks;
-import eee.eee4.registry.EEEScreenHandlers;
+import eee.eee4.registry.EEEMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.Nameable;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
@@ -32,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class EnchantmentCopyingScreenHandler extends AbstractContainerMenu {
+public class EnchantmentCopyingMenu extends AbstractContainerMenu {
     private final Container inventory;
     private final ContainerLevelAccess context;
 
@@ -52,20 +53,19 @@ public class EnchantmentCopyingScreenHandler extends AbstractContainerMenu {
     private static final int PLAYER_INV_END = 38;
 
 
-    public EnchantmentCopyingScreenHandler(int syncId, Inventory playerInventory) {
+    public EnchantmentCopyingMenu(int syncId, Inventory playerInventory) {
         this(syncId, playerInventory, ContainerLevelAccess.NULL);
     }
 
-    public EnchantmentCopyingScreenHandler(int syncId, Inventory playerInventory, ContainerLevelAccess context) {
-        super(EEEScreenHandlers.ENCHANTMENT_COPYING_MENU.get(), syncId);
+    public EnchantmentCopyingMenu(int syncId, Inventory playerInventory, ContainerLevelAccess context) {
+        super(EEEMenus.ENCHANTMENT_COPYING_MENU, syncId);
         this.context = context;
-
 
         this.inventory = new SimpleContainer(2) {
             @Override
             public void setChanged() {
                 super.setChanged();
-                EnchantmentCopyingScreenHandler.this.slotsChanged(this);
+                EnchantmentCopyingMenu.this.slotsChanged(this);
             }
         };
 
@@ -137,7 +137,7 @@ public class EnchantmentCopyingScreenHandler extends AbstractContainerMenu {
         this.context.execute((level, blockpos) -> {
             for (BlockPos offset : EnchantingTableBlock.BOOKSHELF_OFFSETS) {
                 BlockEntity be = level.getBlockEntity(blockpos.offset(offset));
-                if (be instanceof ChiseledBookShelfBlockEntity && EnchantmentCopyingScreenHandler.canAccessBookshelves(level, blockpos, offset)) {
+                if (be instanceof ChiseledBookShelfBlockEntity && EnchantmentCopyingMenu.canAccessBookshelves(level, blockpos, offset)) {
                     bookshelves.add((ChiseledBookShelfBlockEntity) be);
                 }
             }
@@ -216,13 +216,15 @@ public class EnchantmentCopyingScreenHandler extends AbstractContainerMenu {
     public boolean clickMenuButton(@NotNull Player player, int id) {
         if (!(player instanceof ServerPlayer serverPlayer)) return false;
 
-
+        EEE.LOGGER.atDebug().log("clickMenuButton Triggered");
         if (!bookshelves.isEmpty()) {
+            EEE.LOGGER.atDebug().log("bookshelves not empty");
             // pgUp
             if (id == 7) {
                 setBookshelfInViewProp(
                         Math.floorMod(getBookshelfInViewProp() + 1, bookshelves.size())
                 );
+
             }
             // pgDown
             else if (id == 6) {
@@ -233,9 +235,10 @@ public class EnchantmentCopyingScreenHandler extends AbstractContainerMenu {
                 handleBookClick(id,player);
             }
             updateState(serverPlayer);
+            return true;
         }
 
-        return super.clickMenuButton(player, id);
+        return false;
     }
 
     private void handleBookClick(int index, Player player){

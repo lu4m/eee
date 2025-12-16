@@ -1,23 +1,31 @@
 package eee.eee4;
 
+import eee.eee4.menus.EnchantmentCopyingMenu;
 import eee.eee4.networking.s2c.BookSlotPayload;
-import eee.eee4.registry.EEEScreenHandlers;
+import eee.eee4.registry.EEEMenus;
 import eee.eee4.screen.EnchantmentCopyingScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.player.Inventory;
 
 @Environment(EnvType.CLIENT)
 public class EeeClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
-		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
-        HandledScreens.register(EEEScreenHandlers.ENCHANTMENT_COPYING_SCREEN_HANDLER, EnchantmentCopyingScreen::new);
+
+        MenuScreens.register(
+                EEEMenus.ENCHANTMENT_COPYING_MENU,
+                EnchantmentCopyingScreen::new
+        );
 
         ClientPlayNetworking.registerGlobalReceiver(
-                BookSlotPayload.ID,
+                BookSlotPayload.TYPE,
                 (payload, context) ->
                     context.client().execute(() -> {
                         EnchantmentCopyingScreen.CLIENT_BOOKS_SLOTS_DATA.clear();

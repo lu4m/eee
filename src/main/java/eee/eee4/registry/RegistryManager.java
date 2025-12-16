@@ -5,7 +5,7 @@ public class RegistryManager {
 
         EEEBlocks.initialize();
         EEEBlockEntities.initialize();
-        EEEScreenHandlers.initialize();
+        EEEMenus.initialize();
         EEEPayloads.initialize();
 
     }

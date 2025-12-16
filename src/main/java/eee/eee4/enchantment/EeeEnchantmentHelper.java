@@ -1,42 +1,44 @@
 package eee.eee4.enchantment;
 
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.network.chat.Style;
+import net.minecraft.world.item.Items;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+
 import java.util.List;
 
 import java.util.ArrayList;
 
 public class EeeEnchantmentHelper {
 
-    public static List<Text> buildEnchantmentCopyingTooltip(ItemStack stack) {
-        List<Text> tooltip = new ArrayList<>();
+    public static List<Component> buildEnchantmentCopyingTooltip(ItemStack stack) {
+        List<Component> tooltip = new ArrayList<>();
 
         if (stack.isEmpty()) {
             return tooltip;
         }
 
-        if (stack.isOf(Items.ENCHANTED_BOOK)) {
-            tooltip.add(stack.getName().copy().formatted(Formatting.AQUA));
-            var enchants = EnchantmentHelper.getEnchantments(stack);
+        if (stack.is(Items.ENCHANTED_BOOK)) {
+            tooltip.add(stack.getHoverName().copy().setStyle(Style.EMPTY.withColor(ChatFormatting.AQUA)));
+            var enchants = EnchantmentHelper.getEnchantmentsForCrafting(stack).entrySet();
 
             if (enchants.isEmpty()) {
-                tooltip.add(Text.literal("No Enchantments").formatted(Formatting.DARK_GRAY));
+                tooltip.add(Component.literal("No Enchantments").setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY)));
             } else {
-                for (var entry : enchants.getEnchantmentEntries()) {
+                for (var entry : enchants) {
                     int level = entry.getIntValue();
 
-                    Text line = Enchantment.getName(entry.getKey(),level).copy().formatted(Formatting.GRAY);
+                    Component line = Enchantment.getFullname(entry.getKey(),level).copy().setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY));
 
                     tooltip.add(line);
                 }
             }
         }
         else{
-            tooltip.add(stack.getName().copy().formatted(Formatting.WHITE));
+            tooltip.add(stack.getHoverName().copy().setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));
         }
         return tooltip;
     }
@@ -45,9 +47,9 @@ public class EeeEnchantmentHelper {
 
         int total = 7;
 
-        var enchants = EnchantmentHelper.getEnchantments(book);
+        var enchants = EnchantmentHelper.getEnchantmentsForCrafting(book);
 
-        for (var entry : enchants.getEnchantmentEntries()) {
+        for (var entry : enchants.entrySet()) {
             int level = entry.getIntValue();
             total+= level*2;
         }

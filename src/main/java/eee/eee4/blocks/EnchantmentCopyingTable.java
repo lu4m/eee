@@ -1,61 +1,74 @@
 package eee.eee4.blocks;
 
-import com.mojang.serialization.MapCodec;
 import eee.eee4.blockEntities.EnchantmentCopyingTableEntity;
-import eee.eee4.screenHandler.EnchantmentCopyingScreenHandler;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.screen.ScreenHandlerContext;
-import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
+import eee.eee4.menus.EnchantmentCopyingMenu;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.Nullable;
 
-public class EnchantmentCopyingTable extends BlockWithEntity {
+public class EnchantmentCopyingTable extends Block implements EntityBlock {
 
-    public EnchantmentCopyingTable(Settings settings) {
-        super(settings);
+    public EnchantmentCopyingTable(Properties properties) {
+        super(properties);
+    }
 
+
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+        return new EnchantmentCopyingTableEntity(blockPos,blockState);
     }
 
     @Override
-    protected MapCodec<? extends BlockWithEntity> getCodec() {
-        return createCodec(EnchantmentCopyingTable::new);
-    }
-
-    @Override
-    public @Nullable BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new EnchantmentCopyingTableEntity(pos, state);
-    }
-
-    @Override
-    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        BlockEntity be = world.getBlockEntity(pos);
-        if (be instanceof EnchantmentCopyingTableEntity) {
-            player.openHandledScreen(state.createScreenHandlerFactory(world, pos));
+    protected @NotNull InteractionResult useWithoutItem(
+            @NotNull BlockState blockState,
+            Level level,
+            @NotNull BlockPos blockPos,
+            @NotNull Player player,
+            @NotNull BlockHitResult blockHitResult
+    ) {
+        if (!level.isClientSide()) {
+            MenuProvider provider = getMenuProvider(blockState, level, blockPos);
+            if (provider != null) {
+                player.openMenu(provider);
+            }
         }
 
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
-        BlockEntity blockEntity = world.getBlockEntity(pos);
+    protected @Nullable MenuProvider getMenuProvider(
+            @NotNull BlockState blockState,
+            @NotNull Level level,
+            @NotNull BlockPos blockPos
+    ) {
+        BlockEntity blockEntity = level.getBlockEntity(blockPos);
+
         if (blockEntity instanceof EnchantmentCopyingTableEntity) {
-
-            return new SimpleNamedScreenHandlerFactory((syncId, inventory, player)
-                    -> new EnchantmentCopyingScreenHandler(syncId, inventory, ScreenHandlerContext.create(world, pos)
-                    )
-                    , Text.literal("Enchantment Copying"));
-        } else {
-            return null;
+            return new SimpleMenuProvider(
+                    (syncId, inventory, player) ->
+                            new EnchantmentCopyingMenu(
+                                    syncId,
+                                    inventory,
+                                    ContainerLevelAccess.create(level, blockPos)
+                            ),
+                    Component.literal("Enchantment Copying")
+            );
         }
-    }
 
+        return null;
+    }
 }
+

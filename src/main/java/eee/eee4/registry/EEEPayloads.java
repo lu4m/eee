@@ -7,8 +7,8 @@ public class EEEPayloads {
 
     public static void initialize(){
         PayloadTypeRegistry.playS2C().register(
-                BookSlotPayload.ID,
-                BookSlotPayload.CODEC
+                BookSlotPayload.TYPE,
+                BookSlotPayload.STREAM_CODEC
         );
     }
 }
