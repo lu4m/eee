@@ -12,9 +12,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.EnchantingTableBlock;
-import net.minecraft.world.level.block.entity.ChiseledBookShelfBlockEntity;
-import net.minecraft.world.level.block.entity.EnchantingTableBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.BlockPos;
@@ -22,9 +19,6 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class EnchantmentCopyingTableEntity extends BlockEntity implements Nameable {
 
@@ -113,20 +107,6 @@ public class EnchantmentCopyingTableEntity extends BlockEntity implements Nameab
         tableEntity.flip += tableEntity.flipA;
     }
 
-    public  List<ChiseledBookShelfBlockEntity> scanBookshelves() {
-        List<ChiseledBookShelfBlockEntity> bookshelves = new ArrayList<>();
-
-        for (BlockPos offset : EnchantingTableBlock.BOOKSHELF_OFFSETS) {
-            assert this.level != null;
-            BlockEntity be = this.level.getBlockEntity(this.worldPosition.offset(offset));
-            if (be instanceof ChiseledBookShelfBlockEntity && canAccessBookshelves(level, worldPosition, offset)) {
-                bookshelves.add((ChiseledBookShelfBlockEntity) be);
-            }
-        }
-
-        return bookshelves;
-    }
-
     public static boolean canAccessBookshelves(Level level, BlockPos blockPos, BlockPos offset){
         return level.getBlockState(blockPos.offset(offset.getX() / 2, offset.getY(), offset.getZ() / 2)).is(BlockTags.ENCHANTMENT_POWER_TRANSMITTER);
     }
@@ -147,7 +127,7 @@ public class EnchantmentCopyingTableEntity extends BlockEntity implements Nameab
     @Override
     protected void applyImplicitComponents(@NotNull DataComponentGetter dataComponentGetter) {
         super.applyImplicitComponents(dataComponentGetter);
-        this.name = (Component)dataComponentGetter.get(DataComponents.CUSTOM_NAME);
+        this.name = dataComponentGetter.get(DataComponents.CUSTOM_NAME);
     }
 
     @Override

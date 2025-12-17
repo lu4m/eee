@@ -59,7 +59,7 @@ public class EnchantmentCopyingRenderer implements BlockEntityRenderer<@NotNull 
     }
 
     @Override
-    public void submit(EnchantmentCopyingRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState cameraRenderState) {
+    public void submit(EnchantmentCopyingRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, @NotNull CameraRenderState cameraRenderState) {
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.75F, 0.5F);
         poseStack.translate(0.0F, 0.1F + Mth.sin((renderState.time * 0.1F)) * 0.01F, 0.0F);
