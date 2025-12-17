@@ -1,6 +1,7 @@
 package eee.eee4.menus;
 
 import eee.eee4.EEE;
+import eee.eee4.blockEntities.EnchantmentCopyingTableEntity;
 import eee.eee4.enchantment.EeeEnchantmentHelper;
 import eee.eee4.networking.BookSlotData;
 import eee.eee4.networking.s2c.BookSlotPayload;
@@ -136,7 +137,8 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
         this.context.execute((level, blockpos) -> {
             for (BlockPos offset : EnchantingTableBlock.BOOKSHELF_OFFSETS) {
                 BlockEntity be = level.getBlockEntity(blockpos.offset(offset));
-                if (be instanceof ChiseledBookShelfBlockEntity && EnchantmentCopyingMenu.canAccessBookshelves(level, blockpos, offset)) {
+
+                if (be instanceof ChiseledBookShelfBlockEntity && EnchantmentCopyingTableEntity.canAccessBookshelves(level, blockpos, offset)) {
                     bookshelves.add((ChiseledBookShelfBlockEntity) be);
                 }
             }
@@ -273,11 +275,6 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
                         SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.1F + 0.9F)
         );
 
-    }
-
-
-    public static boolean canAccessBookshelves(Level level, BlockPos blockPos, BlockPos offset){
-        return level.getBlockState(blockPos.offset(offset.getX() / 2, offset.getY(), offset.getZ() / 2)).is(BlockTags.ENCHANTMENT_POWER_TRANSMITTER);
     }
 
     @Override

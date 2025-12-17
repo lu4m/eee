@@ -2,14 +2,18 @@ package eee.eee4;
 
 import eee.eee4.menus.EnchantmentCopyingMenu;
 import eee.eee4.networking.s2c.BookSlotPayload;
+import eee.eee4.registry.EEEBlockEntities;
 import eee.eee4.registry.EEEMenus;
+import eee.eee4.renderer.blockentity.EnchantmentCopyingRenderer;
 import eee.eee4.screen.EnchantmentCopyingScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,6 +28,11 @@ public class EeeClient implements ClientModInitializer {
                 EnchantmentCopyingScreen::new
         );
 
+        BlockEntityRenderers.register(
+                EEEBlockEntities.ENCHANTMENT_COPYING_TABLE_ENTITY,
+                EnchantmentCopyingRenderer::new
+        );
+
         ClientPlayNetworking.registerGlobalReceiver(
                 BookSlotPayload.TYPE,
                 (payload, context) ->
@@ -34,4 +43,9 @@ public class EeeClient implements ClientModInitializer {
         );
 
 	}
+
+
+    public static class ClientModEvents{
+
+    }
 }
