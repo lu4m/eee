@@ -78,7 +78,7 @@ public class EnchantmentCopyingTable extends Block implements EntityBlock {
                                     inventory,
                                     ContainerLevelAccess.create(level, blockPos)
                             ),
-                    Component.literal("Enchantment Copying")
+                    Component.translatable("gui.eee4.enchantment_copying.title")
             );
         }
 

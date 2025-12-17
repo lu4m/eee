@@ -5,27 +5,22 @@ import eee.eee4.networking.BookSlotData;
 import eee.eee4.menus.EnchantmentCopyingMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class EnchantmentCopyingScreen extends AbstractContainerScreen<EnchantmentCopyingMenu> {
+public class EnchantmentCopyingScreen extends AbstractContainerScreen<@NotNull EnchantmentCopyingMenu> {
 
     private static final Identifier BG_TEXTURE = Identifier.fromNamespaceAndPath(EEE.MOD_ID, "textures/gui/container/enchantment_copying.png");
     private static final Identifier BOOKSHELF_TEXTURE = Identifier.fromNamespaceAndPath(EEE.MOD_ID, "textures/gui/sprites/container/enchantment_copying/bookshelf_bg.png");
@@ -66,7 +61,6 @@ public class EnchantmentCopyingScreen extends AbstractContainerScreen<Enchantmen
     }
 
     private boolean isMouseOverPgUp( int mouseX, int mouseY){
-        EEE.LOGGER.atDebug().log("mouse over pgUP");
         return mouseX >= PG_X+this.leftPos && mouseX <= PG_X+this.leftPos+14
                 && mouseY >= PGUP_Y+this.topPos && mouseY <= PGUP_Y+this.topPos+14;
     }
@@ -120,12 +114,14 @@ public class EnchantmentCopyingScreen extends AbstractContainerScreen<Enchantmen
         }
 
         if (isMouseOverPgDown(click_x,click_y)){
+            assert this.minecraft.gameMode != null;
             this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 6);
             playClickSound();
             return true;
         }
 
         if (isMouseOverPgUp(click_x,click_y)){
+            assert this.minecraft.gameMode != null;
             this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 7);
             playClickSound();
             return true;
@@ -163,9 +159,15 @@ public class EnchantmentCopyingScreen extends AbstractContainerScreen<Enchantmen
                 0.0F,0.0F,114,47,114,47
             );
 
-        context.drawString(this.font,"Bookshelf"+" "+( this.menu.getBookshelfInViewProp() +1),
+        Component shelfTitle = Component.translatable("gui.eee4.enchantment_copying.copy.bookshelf.title",
+                this.menu.getBookshelfInViewProp() + 1);
+
+        context.drawString(
+                this.font,shelfTitle,
                 this.leftPos+BOOKSHELF_X + 4,this.topPos+BOOKSHELF_Y + 4,0xFFDEDEDE,true
         );
+
+
 
         for(int i = 0; i < 6; i++){
             if(isSlotPresent(i)) {

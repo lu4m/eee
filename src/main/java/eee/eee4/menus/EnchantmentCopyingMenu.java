@@ -10,7 +10,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.world.Nameable;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
@@ -216,9 +215,7 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
     public boolean clickMenuButton(@NotNull Player player, int id) {
         if (!(player instanceof ServerPlayer serverPlayer)) return false;
 
-        EEE.LOGGER.atDebug().log("clickMenuButton Triggered");
         if (!bookshelves.isEmpty()) {
-            EEE.LOGGER.atDebug().log("bookshelves not empty");
             // pgUp
             if (id == 7) {
                 setBookshelfInViewProp(
