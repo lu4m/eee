@@ -22,7 +22,7 @@ import org.jspecify.annotations.Nullable;
 
 public class EnchantmentCopyingTableEntity extends BlockEntity implements Nameable {
 
-    private static final Component DEFAULT_NAME = Component.translatable("container.enchant");
+    private static final Component DEFAULT_NAME = Component.translatable("gui.eee4.enchantment_copying.title");
     public int time;
     public float flip;
     public float oFlip;

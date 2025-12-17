@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:calcite",
+    "B": "minecraft:book",
+    "G": "minecraft:gold_ingot",
+    "D": "minecraft:ghast_tear"
+  },
+  "pattern": [
+    " B ",
+    "GCG",
+    "CDC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "eee4:enchantment_copying_table"
+  }
+}
