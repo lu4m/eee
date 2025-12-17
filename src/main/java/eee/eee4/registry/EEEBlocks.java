@@ -11,6 +11,7 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,8 +23,9 @@ public class EEEBlocks {
     public static final Block ENCHANTMENT_COPYING_TABLE;
 
     static {
-        ENCHANTMENT_COPYING_TABLE = register("enchantment_copying_table", EnchantmentCopyingTable::new,
-                BlockBehaviour.Properties.of(), true);
+        ENCHANTMENT_COPYING_TABLE = register("enchantment_copying_table",
+                EnchantmentCopyingTable::new,
+                BlockBehaviour.Properties.ofFullCopy(Blocks.CALCITE), true);
     }
 
     // force loading
