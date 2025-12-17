@@ -10,7 +10,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import org.jetbrains.annotations.NotNull;
 
-public class EEEMenus {
+public final class EEEMenus {
 
     public static final MenuType<@NotNull EnchantmentCopyingMenu> ENCHANTMENT_COPYING_MENU;
 

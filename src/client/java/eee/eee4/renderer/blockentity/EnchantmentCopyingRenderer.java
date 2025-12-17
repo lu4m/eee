@@ -2,7 +2,7 @@ package eee.eee4.renderer.blockentity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import eee.eee4.blockEntities.EnchantmentCopyingTableEntity;
+import eee.eee4.blockEntitie.EnchantmentCopyingTableEntity;
 import eee.eee4.renderer.blockentity.state.EnchantmentCopyingRenderState;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

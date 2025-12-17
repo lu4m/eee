@@ -1,5 +1,6 @@
 package eee.eee4;
 
+import eee.eee4.itemgroup.ItemGroupsManager;
 import eee.eee4.registry.RegistryManager;
 import net.fabricmc.api.ModInitializer;
 
@@ -15,7 +16,8 @@ public class EEE implements ModInitializer {
 	@Override
 	public void onInitialize() {
 
-        RegistryManager.init();
+        RegistryManager.initialize();
+        ItemGroupsManager.initialize();
 
 	}
 }

@@ -2,7 +2,7 @@ package eee.eee4.blocks;
 
 import com.mojang.serialization.MapCodec;
 import eee.eee4.EEE;
-import eee.eee4.blockEntities.EnchantmentCopyingTableEntity;
+import eee.eee4.blockEntitie.EnchantmentCopyingTableEntity;
 import eee.eee4.menus.EnchantmentCopyingMenu;
 import eee.eee4.registry.EEEBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -61,10 +61,6 @@ public class EnchantmentCopyingTable extends BaseEntityBlock {
 
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<@NotNull T> getTicker(Level level, @NotNull BlockState blockState, @NotNull BlockEntityType<@NotNull T> blockEntityType) {
-        EEE.LOGGER.atDebug().log("{}",blockEntityType == EEEBlockEntities.ENCHANTMENT_COPYING_TABLE_ENTITY);
-        EEE.LOGGER.atDebug().log("{}",blockEntityType);
-        EEE.LOGGER.atDebug().log("{}",EEEBlockEntities.ENCHANTMENT_COPYING_TABLE_ENTITY);
-
         return level.isClientSide() ? createTickerHelper(blockEntityType, EEEBlockEntities.ENCHANTMENT_COPYING_TABLE_ENTITY, EnchantmentCopyingTableEntity::bookAnimationTick) : null;
     }
 

@@ -1,4 +1,4 @@
-package eee.eee4.blockEntities;
+package eee.eee4.blockEntitie;
 
 import eee.eee4.registry.EEEBlockEntities;
 import net.minecraft.core.component.DataComponentGetter;

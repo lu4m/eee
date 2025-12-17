@@ -1,7 +1,7 @@
 package eee.eee4.menus;
 
 import eee.eee4.EEE;
-import eee.eee4.blockEntities.EnchantmentCopyingTableEntity;
+import eee.eee4.blockEntitie.EnchantmentCopyingTableEntity;
 import eee.eee4.enchantment.EeeEnchantmentHelper;
 import eee.eee4.networking.BookSlotData;
 import eee.eee4.networking.s2c.BookSlotPayload;

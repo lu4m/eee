@@ -1,7 +1,7 @@
 package eee.eee4.registry;
 
-public class RegistryManager {
-    public static void init(){
+public final class RegistryManager {
+    public static void initialize(){
 
         EEEBlocks.initialize();
         EEEBlockEntities.initialize();

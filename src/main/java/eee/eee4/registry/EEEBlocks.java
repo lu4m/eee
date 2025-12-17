@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-public class EEEBlocks {
+public final class EEEBlocks {
 
     public static final Block ENCHANTMENT_COPYING_TABLE;
 
