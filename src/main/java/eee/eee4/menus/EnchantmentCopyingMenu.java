@@ -69,7 +69,7 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
             }
         };
 
-        this.addSlot(new Slot(this.inventory, 0, 13, 22) {
+        this.addSlot(new Slot(this.inventory, 0, 10, 22) {
             public int getMaxStackSize() {
                 return 1;
             }
@@ -82,7 +82,7 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
                 return EMPTY_BOOK_SLOT_TEXTURE;
             }
         });
-        this.addSlot(new Slot(this.inventory, 1, 13, 45) {
+        this.addSlot(new Slot(this.inventory, 1, 10, 45) {
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return stack.is(Items.LAPIS_LAZULI);
             }
