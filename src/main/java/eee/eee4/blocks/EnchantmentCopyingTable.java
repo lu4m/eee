@@ -40,7 +40,7 @@ public class EnchantmentCopyingTable extends Block implements EntityBlock {
     }
 
     @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
+    public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos blockPos, @NotNull BlockState blockState) {
         return new EnchantmentCopyingTableEntity(blockPos,blockState);
     }
 

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "eee4:enchantment_copying_table"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "eee4:block/enchantment_copying_table"
+}

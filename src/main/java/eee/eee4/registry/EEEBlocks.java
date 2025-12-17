@@ -25,7 +25,11 @@ public class EEEBlocks {
     static {
         ENCHANTMENT_COPYING_TABLE = register("enchantment_copying_table",
                 EnchantmentCopyingTable::new,
-                BlockBehaviour.Properties.ofFullCopy(Blocks.CALCITE), true);
+                BlockBehaviour.Properties.ofFullCopy(Blocks.CALCITE)
+                        .strength(1.75f,7f)
+                        .lightLevel(s -> 5)
+                        .requiresCorrectToolForDrops()
+                , true);
     }
 
     // force loading
