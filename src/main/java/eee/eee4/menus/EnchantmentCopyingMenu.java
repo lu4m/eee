@@ -97,18 +97,21 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
         this.addDataSlots(this.properties);
 
         scanBookshelves();
-
-        if (!this.bookshelves.isEmpty()) {
-            this.setBookshelfInViewProp(0);
-        }
-        else{
-            this.setBookshelfInViewProp(-1);
-        }
         // initial state update
         context.execute((level, pos) -> {
-            if (playerInventory.player instanceof ServerPlayer serverPlayer){
+            int prevBookshelf = -1;;
+            if (level.getBlockEntity(pos) instanceof EnchantmentCopyingTableEntity tableEntity)
+                prevBookshelf = tableEntity.getLastPage();
+
+            if (prevBookshelf >= 1 && prevBookshelf<bookshelves.size())
+                setBookshelfInViewProp(prevBookshelf);
+            else
+                setBookshelfInViewProp(0);
+
+
+            if (playerInventory.player instanceof ServerPlayer serverPlayer)
                 updateState(serverPlayer);
-            }
+
         });
 
     }
@@ -283,9 +286,14 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
     @Override
     public void removed(@NotNull Player player) {
         super.removed(player);
-        this.context.execute((world, pos) ->
-                this.clearContainer(player, this.inventory)
-        );
+
+        this.context.execute((level, pos) -> {
+            if (level.getBlockEntity(pos) instanceof EnchantmentCopyingTableEntity tableEntity) {
+                tableEntity.setLastPage(getBookshelfInViewProp());
+            }
+
+            this.clearContainer(player, this.inventory);
+        });
     }
 
     @Override
@@ -318,5 +326,7 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
         slot.setChanged();
         return copy;
     }
+
+
 
 }

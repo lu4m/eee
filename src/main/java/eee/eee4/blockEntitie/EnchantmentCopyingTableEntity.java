@@ -36,6 +36,8 @@ public class EnchantmentCopyingTableEntity extends BlockEntity implements Nameab
     private static final RandomSource RANDOM = RandomSource.create();
     private @Nullable Component name;
 
+    private int lastPage;
+
     public EnchantmentCopyingTableEntity(BlockPos blockPos, BlockState blockState) {
         super(EEEBlockEntities.ENCHANTMENT_COPYING_TABLE_ENTITY, blockPos, blockState);
     }
@@ -134,6 +136,15 @@ public class EnchantmentCopyingTableEntity extends BlockEntity implements Nameab
     protected void collectImplicitComponents(DataComponentMap.@NotNull Builder builder) {
         super.collectImplicitComponents(builder);
         builder.set(DataComponents.CUSTOM_NAME, this.name);
+    }
+
+    public int getLastPage() {
+        return lastPage;
+    }
+
+    public void setLastPage(int lastPage) {
+        this.lastPage = lastPage;
+        setChanged();
     }
 
 }
