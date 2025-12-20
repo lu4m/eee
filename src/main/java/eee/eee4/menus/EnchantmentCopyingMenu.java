@@ -8,8 +8,10 @@ import eee.eee4.networking.s2c.BookSlotPayload;
 import eee.eee4.registry.EEEBlocks;
 import eee.eee4.registry.EEEMenus;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.item.enchantment.Enchantable;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
@@ -267,6 +269,7 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
                 copy,EnchantmentHelper.getEnchantmentsForCrafting(selected)
         );
         copy.setCount(1);
+        copy.set(DataComponents.REPAIR_COST,selected.get(DataComponents.REPAIR_COST));
 
         inventory.setItem(BOOK_SLOT,copy);
 
