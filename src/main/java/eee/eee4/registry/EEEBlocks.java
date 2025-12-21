@@ -2,6 +2,7 @@ package eee.eee4.registry;
 
 import eee.eee4.EEE;
 import eee.eee4.blocks.EnchantmentCopyingTable;
+import eee.eee4.blocks.EnchantmentSplittingTable;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -20,6 +21,7 @@ import java.util.function.Function;
 public final class EEEBlocks {
 
     public static final Block ENCHANTMENT_COPYING_TABLE;
+    public static final Block ENCHANTMENT_SPLITTING_TABLE;
 
     static {
         ENCHANTMENT_COPYING_TABLE = register("enchantment_copying_table",
@@ -29,6 +31,12 @@ public final class EEEBlocks {
                         .lightLevel(s -> 5)
                         .requiresCorrectToolForDrops()
                 , true);
+
+        ENCHANTMENT_SPLITTING_TABLE = register("enchantment_splitting_table",
+                EnchantmentSplittingTable::new,
+                BlockBehaviour.Properties.of(),
+                true);
+
     }
 
     // force loading
