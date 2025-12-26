@@ -34,7 +34,9 @@ public final class EEEBlocks {
 
         ENCHANTMENT_SPLITTING_TABLE = register("enchantment_splitting_table",
                 EnchantmentSplittingTable::new,
-                BlockBehaviour.Properties.of(),
+                BlockBehaviour.Properties.ofFullCopy(Blocks.DEEPSLATE)
+                        .strength(4f,8f)
+                        .requiresCorrectToolForDrops(),
                 true);
 
     }
