@@ -1,13 +1,18 @@
 package eee.eee4.blocks;
 
 import com.mojang.serialization.MapCodec;
+import eee.eee4.blockEntitie.EnchantmentCopyingTableEntity;
 import eee.eee4.blockEntitie.EnchantmentSplittingTableEntity;
+import eee.eee4.registry.EEEBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -39,7 +44,19 @@ public class EnchantmentSplittingTable extends BaseEntityBlock {
         return SHAPE;
     }
 
-
+    @Override
+    public @Nullable <T extends BlockEntity> BlockEntityTicker<@NotNull T> getTicker(
+            Level level,
+            @NotNull BlockState blockState,
+            @NotNull BlockEntityType<@NotNull T> blockEntityType
+    ) {
+        return level.isClientSide() ? createTickerHelper(
+                    blockEntityType,
+                    EEEBlockEntities.ENCHANTMENT_SPLITTING_TABLE_ENTITY,
+                    EnchantmentSplittingTableEntity::itemAnimationTick
+                )
+                : null;
+    }
 
     @Override
     public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos blockPos, @NotNull BlockState blockState) {
