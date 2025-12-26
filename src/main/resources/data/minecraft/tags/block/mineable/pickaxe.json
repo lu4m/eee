@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "eee4:enchantment_copying_table"
+    "eee4:enchantment_copying_table",
+    "eee4:enchantment_splitting_table"
   ]
 }
