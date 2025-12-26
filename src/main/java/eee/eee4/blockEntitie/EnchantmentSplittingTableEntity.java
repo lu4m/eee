@@ -10,4 +10,6 @@ public class EnchantmentSplittingTableEntity extends BlockEntity {
     public EnchantmentSplittingTableEntity(BlockPos blockPos, BlockState blockState) {
         super(EEEBlockEntities.ENCHANTMENT_SPLITTING_TABLE_ENTITY, blockPos, blockState);
     }
+
+
 }

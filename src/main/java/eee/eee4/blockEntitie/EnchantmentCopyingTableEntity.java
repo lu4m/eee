@@ -42,18 +42,6 @@ public class EnchantmentCopyingTableEntity extends BlockEntity implements Nameab
         super(EEEBlockEntities.ENCHANTMENT_COPYING_TABLE_ENTITY, blockPos, blockState);
     }
 
-    @Override
-    protected void saveAdditional(@NotNull ValueOutput valueOutput) {
-        super.saveAdditional(valueOutput);
-        valueOutput.storeNullable("CustomName", ComponentSerialization.CODEC, this.name);
-    }
-
-    @Override
-    protected void loadAdditional(@NotNull ValueInput valueInput) {
-        super.loadAdditional(valueInput);
-        this.name = parseCustomNameSafe(valueInput, "CustomName");
-    }
-
     public static void bookAnimationTick(Level level, BlockPos blockPos, BlockState blockState, EnchantmentCopyingTableEntity tableEntity) {
         tableEntity.oOpen = tableEntity.open;
         tableEntity.oRot = tableEntity.rot;
