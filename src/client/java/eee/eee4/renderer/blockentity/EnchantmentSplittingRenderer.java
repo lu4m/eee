@@ -35,28 +35,29 @@ public class EnchantmentSplittingRenderer implements BlockEntityRenderer<@NotNul
 
     @Override
     public void extractRenderState(
-            @NotNull EnchantmentSplittingTableEntity blockEntity,
-            @NotNull EnchantmentSplittingRenderState renderState,
+            @NotNull EnchantmentSplittingTableEntity e,
+            @NotNull EnchantmentSplittingRenderState s,
             float partialTick,
             @NotNull Vec3 vec3,
             ModelFeatureRenderer.@Nullable CrumblingOverlay crumblingOverlay
     ) {
 
         BlockEntityRenderer.super.extractRenderState(
-                blockEntity, renderState, partialTick, vec3, crumblingOverlay
+                e, s, partialTick, vec3, crumblingOverlay
         );
 
-        renderState.hover  = Mth.lerp(partialTick, blockEntity.oHover,  blockEntity.hover);
-        renderState.bobA   = Mth.lerp(partialTick, blockEntity.oBobA,   blockEntity.bobA);
-        renderState.twistF = Mth.lerp(partialTick, blockEntity.oTwistF, blockEntity.twistF);
+        s.hover  = Mth.lerp(partialTick, e.oHover,  e.hover);
+        s.transX = Mth.lerp(partialTick, e.oTransX, e.transX);
+        s.transZ = Mth.lerp(partialTick, e.oTransZ, e.transZ);
+        s.transY = Mth.lerp(partialTick, e.oTransY, e.transY);
 
-        renderState.time = blockEntity.time + partialTick;
+        s.time = e.time + partialTick;
 
         itemModelResolver.updateForTopItem(
-                renderState.itemState,
+                s.itemState,
                 DIAMOND_SWORD_STACK,
                 ItemDisplayContext.FIXED,
-                blockEntity.getLevel(),
+                e.getLevel(),
                 null,
                 0
         );
@@ -69,7 +70,7 @@ public class EnchantmentSplittingRenderer implements BlockEntityRenderer<@NotNul
 
     @Override
     public void submit(
-            EnchantmentSplittingRenderState renderState,
+            EnchantmentSplittingRenderState s,
             @NotNull PoseStack poseStack,
             @NotNull SubmitNodeCollector collector,
             @NotNull CameraRenderState camera
@@ -77,33 +78,52 @@ public class EnchantmentSplittingRenderer implements BlockEntityRenderer<@NotNul
 
         poseStack.pushPose();
 
+        // initial pose
         poseStack.translate(0.5F, 0.85F, 0.5F);
 
-        float hoverEase = (float) Mth.smoothstep(renderState.hover);
+        // hover
+        float hoverEase = (float) Mth.smoothstep(s.hover);
         poseStack.translate(0.0F, hoverEase * 0.55F, 0.0F);
 
+        // translate
+        poseStack.translate(s.transX,s.transY,s.transZ);
+
+        // bob
         float bob =
-                Mth.sin(renderState.time * 0.15F)
-                        * 0.1F
-                        * renderState.bobA;
+                (
+                        Mth.sin(s.time * 0.15F) * 0.06F +
+                        Mth.sin((s.time * 0.04F)+7.0F)  * 0.02F
+                ) * s.hover;
 
         poseStack.translate(0.0F, bob, 0.0F);
 
-        float spin =
-                Mth.sin(renderState.time * 0.10F)
-                        * 18.0F
-                        * renderState.twistF;
-
-        poseStack.mulPose(Axis.YP.rotationDegrees(spin));
-
+        // downwards orientation
         poseStack.mulPose(Axis.ZP.rotationDegrees(135.0F));
 
+        // tilt
+        poseStack.mulPose(Axis.XP.rotationDegrees(
+                Mth.sin(s.time * 0.07F) * 3.0F * s.hover
+        ));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(
+                Mth.cos(s.time * 0.09F) * 2.0F * s.hover
+        ));
+
+        poseStack.mulPose(Axis.YP.rotationDegrees(
+                Mth.cos(s.time * 0.09F) * 3.0F * s.hover
+        ));
+
+        // scale down
         poseStack.scale(0.75F, 0.75F, 0.75F);
 
-        renderState.itemState.submit(
+        // breathe
+        float breathe = 1.0F + Mth.sin(s.time * 0.08F) * 0.03F * s.hover;
+        poseStack.scale(breathe, breathe, breathe);
+
+        // the item model
+        s.itemState.submit(
                 poseStack,
                 collector,
-                renderState.lightCoords,
+                s.lightCoords,
                 OverlayTexture.NO_OVERLAY,
                 0
         );
