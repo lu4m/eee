@@ -3,6 +3,7 @@ package eee.eee4.renderer.blockentity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import eee.eee4.blockEntitie.EnchantmentSplittingTableEntity;
+import eee.eee4.registry.EEEItems;
 import eee.eee4.renderer.blockentity.state.EnchantmentSplittingRenderState;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -26,7 +27,7 @@ import org.jspecify.annotations.Nullable;
 public class EnchantmentSplittingRenderer implements BlockEntityRenderer<@NotNull EnchantmentSplittingTableEntity, @NotNull EnchantmentSplittingRenderState> {
 
     private final ItemModelResolver itemModelResolver;
-    private static final ItemStack DIAMOND_SWORD_STACK = new ItemStack(Items.DIAMOND_SWORD);
+    private static final ItemStack DIAMOND_SWORD_STACK = new ItemStack(EEEItems.SEMANTIC_SPLITTING_SWORD);
 
 
     public EnchantmentSplittingRenderer(BlockEntityRendererProvider.Context context) {

@@ -7,7 +7,7 @@ public final class RegistryManager {
         EEEBlockEntities.initialize();
         EEEMenus.initialize();
         EEEPayloads.initialize();
-
+        EEEItems.initialize();
     }
 
 }
