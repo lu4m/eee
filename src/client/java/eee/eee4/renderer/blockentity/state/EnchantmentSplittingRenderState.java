@@ -9,7 +9,10 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
 @Environment(EnvType.CLIENT)
 public class EnchantmentSplittingRenderState extends BlockEntityRenderState{
     public ItemStackRenderState itemState;
-    public float time = 0L;
+    public float hover;
+    public float bobA;
+    public float time;
+    public float twistF;
     public EnchantmentSplittingRenderState() {
         this.itemState = new  ItemStackRenderState();
     }

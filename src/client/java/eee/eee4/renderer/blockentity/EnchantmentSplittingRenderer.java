@@ -2,24 +2,18 @@ package eee.eee4.renderer.blockentity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import eee.eee4.EEE;
 import eee.eee4.blockEntitie.EnchantmentSplittingTableEntity;
 import eee.eee4.renderer.blockentity.state.EnchantmentSplittingRenderState;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.item.ItemModelResolver;
-import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -43,15 +37,29 @@ public class EnchantmentSplittingRenderer implements BlockEntityRenderer<@NotNul
     public void extractRenderState(
             @NotNull EnchantmentSplittingTableEntity blockEntity,
             @NotNull EnchantmentSplittingRenderState renderState,
-            float f,
+            float partialTick,
             @NotNull Vec3 vec3,
             ModelFeatureRenderer.@Nullable CrumblingOverlay crumblingOverlay
     ) {
-        BlockEntityRenderer.super.extractRenderState(blockEntity, renderState, f, vec3, crumblingOverlay);
 
-        renderState.time = (float) blockEntity.time + f;
+        BlockEntityRenderer.super.extractRenderState(
+                blockEntity, renderState, partialTick, vec3, crumblingOverlay
+        );
 
-        itemModelResolver.updateForTopItem(renderState.itemState, DIAMOND_SWORD_STACK, ItemDisplayContext.FIXED,blockEntity.getLevel(),null,0);
+        renderState.hover  = Mth.lerp(partialTick, blockEntity.oHover,  blockEntity.hover);
+        renderState.bobA   = Mth.lerp(partialTick, blockEntity.oBobA,   blockEntity.bobA);
+        renderState.twistF = Mth.lerp(partialTick, blockEntity.oTwistF, blockEntity.twistF);
+
+        renderState.time = blockEntity.time + partialTick;
+
+        itemModelResolver.updateForTopItem(
+                renderState.itemState,
+                DIAMOND_SWORD_STACK,
+                ItemDisplayContext.FIXED,
+                blockEntity.getLevel(),
+                null,
+                0
+        );
     }
 
     @Override
@@ -69,15 +77,28 @@ public class EnchantmentSplittingRenderer implements BlockEntityRenderer<@NotNul
 
         poseStack.pushPose();
 
-        poseStack.translate(0.5F, 1.4F, 0.5F);
+        poseStack.translate(0.5F, 0.85F, 0.5F);
 
-        float bob = Mth.sin(renderState.time * 0.15F) * 0.1F;
+        float hoverEase = (float) Mth.smoothstep(renderState.hover);
+        poseStack.translate(0.0F, hoverEase * 0.55F, 0.0F);
 
-        poseStack.translate(0.0D, bob, 0.0D);
+        float bob =
+                Mth.sin(renderState.time * 0.15F)
+                        * 0.1F
+                        * renderState.bobA;
+
+        poseStack.translate(0.0F, bob, 0.0F);
+
+        float spin =
+                Mth.sin(renderState.time * 0.10F)
+                        * 18.0F
+                        * renderState.twistF;
+
+        poseStack.mulPose(Axis.YP.rotationDegrees(spin));
 
         poseStack.mulPose(Axis.ZP.rotationDegrees(135.0F));
 
-        poseStack.scale(0.8F, 0.8F, 0.8F);
+        poseStack.scale(0.75F, 0.75F, 0.75F);
 
         renderState.itemState.submit(
                 poseStack,
