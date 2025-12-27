@@ -57,7 +57,7 @@ public class EnchantmentSplittingTableEntity extends BlockEntity {
         if (active && e.hover > 0.9F) {
             if (--e.wanderCooldown <= 0) {
                 pickNewWanderTarget(e);
-                e.wanderCooldown = 50 + RANDOM_SOURCE.nextInt(70);
+                e.wanderCooldown = 40 + RANDOM_SOURCE.nextInt(40);
             }
         } else {
             e.transXTarget = 0F;

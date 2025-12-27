@@ -17,6 +17,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
@@ -30,7 +31,6 @@ public class EnchantmentSplittingRenderer implements BlockEntityRenderer<@NotNul
 
     public EnchantmentSplittingRenderer(BlockEntityRendererProvider.Context context) {
         itemModelResolver = context.itemModelResolver();
-
     }
 
     @Override
@@ -50,6 +50,14 @@ public class EnchantmentSplittingRenderer implements BlockEntityRenderer<@NotNul
         s.transX = Mth.lerp(partialTick, e.oTransX, e.transX);
         s.transZ = Mth.lerp(partialTick, e.oTransZ, e.transZ);
         s.transY = Mth.lerp(partialTick, e.oTransY, e.transY);
+
+        s.yRot = switch (e.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)) {
+            case NORTH -> 180.0F;
+            case SOUTH -> 0.0F;
+            case WEST  -> 90.0F;
+            case EAST  -> -90.0F;
+            default -> 0.0F;
+        };
 
         s.time = e.time + partialTick;
 
@@ -80,6 +88,9 @@ public class EnchantmentSplittingRenderer implements BlockEntityRenderer<@NotNul
 
         // initial pose
         poseStack.translate(0.5F, 0.85F, 0.5F);
+
+        // purposely early Y rotation
+        poseStack.mulPose(Axis.YP.rotationDegrees(s.yRot));
 
         // hover
         float hoverEase = (float) Mth.smoothstep(s.hover);
