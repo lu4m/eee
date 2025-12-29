@@ -108,7 +108,7 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
             if (level.getBlockEntity(pos) instanceof EnchantmentCopyingTableEntity tableEntity)
                 prevBookshelf = tableEntity.getLastPage();
 
-            if (prevBookshelf >= 1 && prevBookshelf<bookshelves.size())
+            if (prevBookshelf >= 0 && prevBookshelf<bookshelves.size())
                 setBookshelfInViewProp(prevBookshelf);
             else
                 setBookshelfInViewProp(0);
@@ -214,6 +214,8 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
 
     private void sendToolTips(ServerPlayer player) {
         List<BookSlotData> books = new ArrayList<>();
+
+        if (bookshelves.isEmpty()) return;
 
         for (int i = 0; i < 6; i++) {
             books.add(new BookSlotData(
