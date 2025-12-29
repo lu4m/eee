@@ -110,6 +110,8 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
 
             if (prevBookshelf >= 0 && prevBookshelf<bookshelves.size())
                 setBookshelfInViewProp(prevBookshelf);
+            else if (bookshelves.isEmpty())
+                setBookshelfInViewProp(-1);
             else
                 setBookshelfInViewProp(0);
 
