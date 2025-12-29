@@ -56,4 +56,18 @@ public class EeeEnchantmentHelper {
 
         return total;
     }
+
+    public static int xpPointsDecrease(ItemStack book){
+        int total = 100;
+
+        var enchants = EnchantmentHelper.getEnchantmentsForCrafting(book);
+
+        for (var entry : enchants.entrySet()) {
+            int level = entry.getIntValue();
+            total += 25 * level;
+        }
+
+        return total;
+    }
+
 }

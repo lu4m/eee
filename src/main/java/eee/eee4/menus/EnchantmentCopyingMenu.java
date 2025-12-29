@@ -11,7 +11,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.item.enchantment.Enchantable;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
@@ -28,6 +27,7 @@ import net.minecraft.world.level.block.EnchantingTableBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChiseledBookShelfBlockEntity;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +52,10 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
     private static final int PLAYER_INV_START = 2;
     private static final int PLAYER_INV_END = 38;
 
+    private boolean lapisCondition;
+    private boolean bookCondition;
+
+    private int playerXpLevel;
 
     public EnchantmentCopyingMenu(int syncId, Inventory playerInventory) {
         this(syncId, playerInventory, ContainerLevelAccess.NULL);
@@ -94,12 +98,11 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
 
         this.addStandardInventorySlots(playerInventory, 8, 80);
 
-
         this.properties = new SimpleContainerData(3);
         this.addDataSlots(this.properties);
 
         scanBookshelves();
-        // initial state update
+
         context.execute((level, pos) -> {
             int prevBookshelf = -1;;
             if (level.getBlockEntity(pos) instanceof EnchantmentCopyingTableEntity tableEntity)
@@ -110,11 +113,12 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
             else
                 setBookshelfInViewProp(0);
 
-
-            if (playerInventory.player instanceof ServerPlayer serverPlayer)
-                updateState(serverPlayer);
-
+            if (playerInventory.player instanceof ServerPlayer player) {
+                computeState(player);
+                sendToolTips(player);
+            }
         });
+        broadcastChanges();
 
     }
 
@@ -159,7 +163,16 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
         }
     }
 
-    private void updateBookshelfEncoding(ServerPlayer player) {
+    private void updateSlotConditions(){
+        ItemStack book  = inventory.getItem(BOOK_SLOT);
+        ItemStack lapis = inventory.getItem(LAPIS_SLOT);
+
+        bookCondition = book.is(Items.BOOK) && book.getCount() >= 1;
+        lapisCondition = lapis.is(Items.LAPIS_LAZULI)  && lapis.getCount() >= 1;
+    }
+
+
+    private void updateBookshelfEncoding() {
         int index = getBookshelfInViewProp();
 
         ChiseledBookShelfBlockEntity shelf = bookshelves.get(index);
@@ -173,10 +186,7 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
             if (!stack.isEmpty()) {
                 presentMask |= (1 << i);
 
-                if (
-                        stack.is(Items.ENCHANTED_BOOK) &&
-                                (player.experienceLevel >= currentBooksXpCosts[i] || player.hasInfiniteMaterials())
-                ){
+                if (bookCondition  && lapisCondition && playerXpLevel >= currentBooksXpCosts[i]){
                     activeMask |= (1 << i);
                 }
             }
@@ -184,36 +194,50 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
 
         properties.set(ACTIVE_MASK_PROP, activeMask);
         properties.set(PRESENT_MASK_PROP, presentMask);
-        broadcastChanges();
 
     }
 
-    private void sendTooltipPacket(ServerPlayer player) {
+    private void computeStatePlayerless(){
+        if (bookshelves.isEmpty()) return;
+
+        updateXpCosts();
+        updateSlotConditions();
+
+        updateBookshelfEncoding();
+    }
+
+    private void computeState(ServerPlayer player) {
+        playerXpLevel = player.experienceLevel;
+        computeStatePlayerless();
+
+    }
+
+    private void sendToolTips(ServerPlayer player) {
         List<BookSlotData> books = new ArrayList<>();
 
         for (int i = 0; i < 6; i++) {
-
-            List<Component> toolTip = EeeEnchantmentHelper.buildEnchantmentCopyingTooltip(bookshelves
-                    .get(getBookshelfInViewProp()).getItem(i));
-
-            BookSlotData bd = new BookSlotData(toolTip,currentBooksXpCosts[i]);
-            books.add(bd);
+            books.add(new BookSlotData(
+                    EeeEnchantmentHelper.buildEnchantmentCopyingTooltip(
+                            bookshelves.get(getBookshelfInViewProp()).getItem(i)
+                    ),
+                    currentBooksXpCosts[i]
+            ));
         }
 
-        BookSlotPayload bookPayload = new BookSlotPayload(books);
-
-        player.connection.send(new ClientboundCustomPayloadPacket(bookPayload));
+        player.connection.send(
+                new ClientboundCustomPayloadPacket(new BookSlotPayload(books))
+        );
     }
 
-    private void updateState(ServerPlayer player){
+    @Override
+    public void sendAllDataToRemote() {
+        super.sendAllDataToRemote();
+    }
 
-        if (bookshelves.isEmpty()){
-            return;
-        }
-
-        updateXpCosts();
-        updateBookshelfEncoding(player);
-        sendTooltipPacket(player);
+    @Override
+    public void slotsChanged(@NonNull Container container) {
+        computeStatePlayerless();
+        broadcastChanges();
     }
 
     @Override
@@ -236,7 +260,11 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
             } else {
                 handleBookClick(id,player);
             }
-            updateState(serverPlayer);
+
+            computeState(serverPlayer);
+            sendToolTips(serverPlayer);
+            broadcastChanges();
+
             return true;
         }
 
@@ -261,7 +289,7 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
 
         lapis.shrink(1);
         if (!freeXp){
-            player.giveExperiencePoints(-80);
+            player.giveExperiencePoints(-EeeEnchantmentHelper.xpPointsDecrease(selected));
         }
 
         ItemStack copy = new ItemStack(Items.ENCHANTED_BOOK);
@@ -329,7 +357,5 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
         slot.setChanged();
         return copy;
     }
-
-
 
 }
