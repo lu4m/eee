@@ -1,5 +1,6 @@
 {
   "gui.eee4.enchantment_copying.title": "Copy Enchantment",
   "gui.eee4.enchantment_copying.copy.bookshelf.title": "Bookshelf %s",
-  "block.eee4.enchantment_copying_table": "Enchantment Copying Table"
+  "block.eee4.enchantment_copying_table": "Enchantment Copying Table",
+  "gui.eee4.enchantment_splitting.title": "Split Enchantments"
 }

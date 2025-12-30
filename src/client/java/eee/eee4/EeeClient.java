@@ -7,6 +7,7 @@ import eee.eee4.registry.EEEMenus;
 import eee.eee4.renderer.blockentity.EnchantmentCopyingRenderer;
 import eee.eee4.renderer.blockentity.EnchantmentSplittingRenderer;
 import eee.eee4.screen.EnchantmentCopyingScreen;
+import eee.eee4.screen.EnchantmentSplittingScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -22,6 +23,11 @@ public class EeeClient implements ClientModInitializer {
         MenuScreens.register(
                 EEEMenus.ENCHANTMENT_COPYING_MENU,
                 EnchantmentCopyingScreen::new
+        );
+
+        MenuScreens.register(
+                EEEMenus.ENCHANTMENT_SPLITTING_MENU,
+                EnchantmentSplittingScreen::new
         );
 
         BlockEntityRenderers.register(

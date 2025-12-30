@@ -2,15 +2,22 @@ package eee.eee4.blockEntitie;
 
 import eee.eee4.registry.EEEBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Random;
 
-public class EnchantmentSplittingTableEntity extends BlockEntity {
+public class EnchantmentSplittingTableEntity extends BlockEntity implements Nameable {
+
+    private static final Component DEFAULT_NAME = Component.translatable("gui.eee4.enchantment_splitting.title");
+    private @Nullable Component name;
 
     public int time;
     public float hover;
@@ -86,4 +93,13 @@ public class EnchantmentSplittingTableEntity extends BlockEntity {
         e.transYTarget = EnchantmentSplittingTableEntity.RANDOM_SOURCE.nextFloat() * 0.4F;
     }
 
+    @Override
+    public @NonNull Component getName() {
+        return this.name != null ? this.name : DEFAULT_NAME;
+    }
+
+    @Override
+    public Component getCustomName() {
+        return this.name;
+    }
 }

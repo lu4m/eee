@@ -3,9 +3,16 @@ package eee.eee4.blocks;
 import com.mojang.serialization.MapCodec;
 import eee.eee4.blockEntitie.EnchantmentCopyingTableEntity;
 import eee.eee4.blockEntitie.EnchantmentSplittingTableEntity;
+import eee.eee4.menus.EnchantmentCopyingMenu;
+import eee.eee4.menus.EnchantmentSplittingMenu;
 import eee.eee4.registry.EEEBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -19,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
@@ -76,5 +84,46 @@ public class EnchantmentSplittingTable extends BaseEntityBlock {
     @Override
     public @Nullable BlockEntity newBlockEntity(@NotNull BlockPos blockPos, @NotNull BlockState blockState) {
         return new EnchantmentSplittingTableEntity(blockPos, blockState);
+    }
+
+    @Override
+    protected @NotNull InteractionResult useWithoutItem(
+            @NotNull BlockState blockState,
+            Level level,
+            @NotNull BlockPos blockPos,
+            @NotNull Player player,
+            @NotNull BlockHitResult blockHitResult
+    ) {
+        if (!level.isClientSide()) {
+            MenuProvider provider = getMenuProvider(blockState, level, blockPos);
+            if (provider != null) {
+                player.openMenu(provider);
+            }
+        }
+
+        return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    protected @Nullable MenuProvider getMenuProvider(
+            @NotNull BlockState blockState,
+            @NotNull Level level,
+            @NotNull BlockPos blockPos
+    ) {
+        BlockEntity blockEntity = level.getBlockEntity(blockPos);
+
+        if (blockEntity instanceof EnchantmentSplittingTableEntity entity) {
+            return new SimpleMenuProvider(
+                    (syncId, inventory, player) ->
+                            new EnchantmentSplittingMenu(
+                                    syncId,
+                                    inventory,
+                                    ContainerLevelAccess.create(level, blockPos)
+                            ),
+                    entity.getDisplayName()
+            );
+        }
+
+        return null;
     }
 }

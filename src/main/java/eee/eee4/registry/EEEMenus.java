@@ -2,6 +2,7 @@ package eee.eee4.registry;
 
 import eee.eee4.EEE;
 import eee.eee4.menus.EnchantmentCopyingMenu;
+import eee.eee4.menus.EnchantmentSplittingMenu;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -13,10 +14,13 @@ import org.jetbrains.annotations.NotNull;
 public final class EEEMenus {
 
     public static final MenuType<@NotNull EnchantmentCopyingMenu> ENCHANTMENT_COPYING_MENU;
+    public static final MenuType<@NotNull EnchantmentSplittingMenu> ENCHANTMENT_SPLITTING_MENU;
 
     static {
         ENCHANTMENT_COPYING_MENU = register("enchantment_copying_screen_handler",
                 EnchantmentCopyingMenu::new,FeatureFlagSet.of());
+        ENCHANTMENT_SPLITTING_MENU = register("enchantment_splitting_screen_handler",
+                EnchantmentSplittingMenu::new,FeatureFlagSet.of());
     }
 
 
