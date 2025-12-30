@@ -72,8 +72,6 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
 
         this.addStandardInventorySlots(playerInventory, 8, 124);
 
-        //this.properties = new SimpleContainerData(3);
-        //this.addDataSlots(this.properties);
 
         broadcastChanges();
 
