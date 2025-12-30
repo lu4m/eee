@@ -17,7 +17,7 @@ import java.util.List;
 
 public record EnchantedBookPayload(List<EnchantmentData> enchantments ) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<@NotNull EnchantedBookPayload> TYPE =
-            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(EEE.MOD_ID,"book_slot_payload"));
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(EEE.MOD_ID,"enchanted_book_payload"));
 
     public static final StreamCodec<@NotNull RegistryFriendlyByteBuf, @NotNull EnchantedBookPayload> STREAM_CODEC =
             CustomPacketPayload.codec(EnchantedBookPayload::write, EnchantedBookPayload::new);

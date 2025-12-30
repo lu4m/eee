@@ -17,6 +17,8 @@ public record BooleanArrayPayload(boolean[] array ) implements CustomPacketPaylo
     public static final CustomPacketPayload.Type<@NotNull BooleanArrayPayload> TYPE =
             new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(EEE.MOD_ID,"boolean_array_payload"));
 
+    public static final StreamCodec<@NotNull RegistryFriendlyByteBuf, @NotNull BooleanArrayPayload> STREAM_CODEC =
+            CustomPacketPayload.codec(BooleanArrayPayload::write, BooleanArrayPayload::new);
 
     private BooleanArrayPayload(RegistryFriendlyByteBuf buf) {
         this(read(buf));

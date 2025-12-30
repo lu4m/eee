@@ -20,6 +20,26 @@ public class EeeClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 
+        registerRenderers();
+        registerMenus();
+        registerGlobalReceivers();
+
+	}
+
+    public void registerGlobalReceivers(){
+
+        ClientPlayNetworking.registerGlobalReceiver(
+                BookSlotPayload.TYPE,
+                (payload, context) ->
+                        context.client().execute(() -> {
+                            EnchantmentCopyingScreen.CLIENT_BOOKS_SLOTS_DATA.clear();
+                            EnchantmentCopyingScreen.CLIENT_BOOKS_SLOTS_DATA.addAll(payload.books());
+                        })
+        );
+
+    }
+
+    public void registerMenus(){
         MenuScreens.register(
                 EEEMenus.ENCHANTMENT_COPYING_MENU,
                 EnchantmentCopyingScreen::new
@@ -29,6 +49,9 @@ public class EeeClient implements ClientModInitializer {
                 EEEMenus.ENCHANTMENT_SPLITTING_MENU,
                 EnchantmentSplittingScreen::new
         );
+    }
+
+    public void registerRenderers(){
 
         BlockEntityRenderers.register(
                 EEEBlockEntities.ENCHANTMENT_COPYING_TABLE_ENTITY,
@@ -40,15 +63,6 @@ public class EeeClient implements ClientModInitializer {
                 EnchantmentSplittingRenderer::new
         );
 
-        ClientPlayNetworking.registerGlobalReceiver(
-                BookSlotPayload.TYPE,
-                (payload, context) ->
-                    context.client().execute(() -> {
-                        EnchantmentCopyingScreen.CLIENT_BOOKS_SLOTS_DATA.clear();
-                        EnchantmentCopyingScreen.CLIENT_BOOKS_SLOTS_DATA.addAll(payload.books());
-                    })
-        );
-
-	}
+    }
 
 }
