@@ -1,6 +1,7 @@
 package eee.eee4.enchantment;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.network.chat.Style;
@@ -54,6 +55,12 @@ public class EeeEnchantmentHelper {
             total+= level*2;
         }
 
+        return total;
+    }
+
+    public static int xpCostSplitting(int level){
+        int total = 1;
+        total += total + Mth.floor(level * 1.5);
         return total;
     }
 
