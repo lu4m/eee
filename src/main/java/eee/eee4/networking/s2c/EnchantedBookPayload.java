@@ -15,7 +15,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public record EnchantedBookPayload(List<EnchantmentData> enchantments ) implements CustomPacketPayload {
+public record EnchantedBookPayload(int syncId,List<EnchantmentData> enchantments ) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<@NotNull EnchantedBookPayload> TYPE =
             new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(EEE.MOD_ID,"enchanted_book_payload"));
 
@@ -23,12 +23,12 @@ public record EnchantedBookPayload(List<EnchantmentData> enchantments ) implemen
             CustomPacketPayload.codec(EnchantedBookPayload::write, EnchantedBookPayload::new);
 
     private EnchantedBookPayload(RegistryFriendlyByteBuf buf) {
-        this(read(buf));
+        this(buf.readVarInt(),read(buf));
     }
 
 
     private static List<EnchantmentData> read(RegistryFriendlyByteBuf buf) {
-        int size = buf.readInt();
+        int size = buf.readVarInt();
 
         List<EnchantmentData> enchantments = new ArrayList<>(size);
 
@@ -44,11 +44,12 @@ public record EnchantedBookPayload(List<EnchantmentData> enchantments ) implemen
     }
 
     private void write(RegistryFriendlyByteBuf buf) {
+        buf.writeVarInt(syncId);
         buf.writeVarInt(enchantments.size());
 
         for (EnchantmentData data : enchantments) {
             ComponentSerialization.STREAM_CODEC.encode(buf, data.name());
-            buf.writeVarInt(data.xpCost());
+            buf.writeInt(data.xpCost());
         }
     }
 

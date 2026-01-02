@@ -42,14 +42,15 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
 
     private final Player player;
     private final List<Object2IntMap.Entry<Holder<Enchantment>>> enchantmentsList = new ArrayList<>();
-    private boolean[] selected;
-    private ContainerData properties;
+    public boolean[] selected;
+    public final List<EnchantmentData> enchantmentsDataList = new ArrayList<>();
+    private final ContainerData properties;
 
     private static final Identifier EMPTY_BOOK_SLOT_TEXTURE = Identifier.fromNamespaceAndPath(EEE.MOD_ID,"container/slot/book");
     private static final Identifier EMPTY_ENCHANTED_BOOK_SLOT_TEXTURE = Identifier.fromNamespaceAndPath(EEE.MOD_ID,"container/slot/enchanted_book");
-    public static final int TOP_DISPLAY_INDEX_PROP = 0;
-    public static final int FULL_XP_COST_PROP = 1;
-    public static final int X_ICON_PROP = 2;
+    private static final int TOP_DISPLAY_INDEX_PROP = 0;
+    private static final int FULL_XP_COST_PROP = 1;
+    private static final int X_ICON_PROP = 2;
 
     private ItemStack lastEnchantedBookStack;
     private ItemStack lastOutputStack;
@@ -134,13 +135,24 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
         this.properties.set(TOP_DISPLAY_INDEX_PROP,i);
     }
 
+    public int getTopDisplayIndex(){
+        return this.properties.get(TOP_DISPLAY_INDEX_PROP);
+    }
+
     private void setFullXpCost(int i){
         this.properties.set(FULL_XP_COST_PROP,i);
     }
 
+    public int getFullXpCost(){
+        return this.properties.get(FULL_XP_COST_PROP);
+    }
 
     private void setXIcon(boolean b){
         this.properties.set(X_ICON_PROP,b ? 1 : 0);
+    }
+
+    public boolean getXIcon(){
+        return this.properties.get(X_ICON_PROP) == 1;
     }
 
     private void flipSelectedIndex(int i){
@@ -155,7 +167,8 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
 
     private void computeEnchantments(ItemStack book){
         enchantmentsList.clear();
-        enchantmentsList.addAll(EnchantmentHelper.getEnchantmentsForCrafting(book).entrySet());
+        if (book.is(Items.ENCHANTED_BOOK))
+            enchantmentsList.addAll(EnchantmentHelper.getEnchantmentsForCrafting(book).entrySet());
 
     }
 
@@ -198,7 +211,7 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
     }
 
     private boolean allSelected(){
-        boolean anySelected = false;
+        boolean anySelected = true;
         for (boolean b : selected) {
             anySelected = anySelected && b;
         }
@@ -245,6 +258,18 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
         return itemStack;
     }
 
+    private void computeEnchantmentData(){
+        enchantmentsDataList.clear();
+
+        enchantmentsList.forEach( entry -> {
+            int level = entry.getIntValue();
+            Component name = Enchantment.getFullname(entry.getKey(),level).copy().setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY));
+
+            EnchantmentData e = new EnchantmentData(name,level);
+            enchantmentsDataList.add(e);
+        });
+    }
+
     private void selectUpdate(){
         setFullXpCost(fullXpCost());
         setXIcon(ShouldXIconAppear());
@@ -252,8 +277,9 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
         broadcastChanges();
 
     }
-    private void EnchantmentsUpdate(ItemStack enchantedBook){
+    private void enchantmentsUpdate(ItemStack enchantedBook){
         computeEnchantments(enchantedBook);
+        computeEnchantmentData();
         unselectAll();
         setFullXpCost(fullXpCost());
         setXIcon(ShouldXIconAppear());
@@ -263,29 +289,30 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
     }
 
     private void sendEnchantments(){
-        List<EnchantmentData> enchantmentsData = new ArrayList<>();
-
-        enchantmentsList.forEach( entry -> {
-            int level = entry.getIntValue();
-            Component name = Enchantment.getFullname(entry.getKey(),level).copy().setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY));
-
-            EnchantmentData e = new EnchantmentData(name,level);
-            enchantmentsData.add(e);
-        });
-
         if (player instanceof ServerPlayer serverPlayer)
-            serverPlayer.connection.send(new ClientboundCustomPayloadPacket(new EnchantedBookPayload(enchantmentsData)));
+            serverPlayer.connection.send(new ClientboundCustomPayloadPacket(new EnchantedBookPayload(this.containerId, enchantmentsDataList)));
     }
+
+    public void receiveEnchantmentData(List<EnchantmentData> receivedData){
+        this.enchantmentsDataList.clear();
+        this.enchantmentsDataList.addAll(receivedData);
+    }
+
 
     private void sendSelected(){
         if (player instanceof ServerPlayer serverPlayer)
-            serverPlayer.connection.send(new ClientboundCustomPayloadPacket(new BooleanArrayPayload(selected)));
+            serverPlayer.connection.send(new ClientboundCustomPayloadPacket(new BooleanArrayPayload(this.containerId,selected)));
+    }
+
+    public void receiveSelected(boolean[] receivedSelected){
+        selected = receivedSelected;
     }
 
 
     @Override
     public @NonNull ItemStack quickMoveStack(@NonNull Player player, int i) {
        return ItemStack.EMPTY;
+       // TODO
     }
 
     @Override
@@ -295,11 +322,11 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
 
     @Override
     public void slotsChanged(@NonNull Container container) {
-        super.slotsChanged(container);
         if(container == this.enchantedBookSlot){
-
-
+            ItemStack book = container.getItem(0);
+            enchantmentsUpdate(book);
         }
+        // TODO
 
     }
 }

@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public record BooleanArrayPayload(boolean[] array ) implements CustomPacketPayload {
+public record BooleanArrayPayload(int syncId,boolean[] array ) implements CustomPacketPayload {
     public static final CustomPacketPayload.Type<@NotNull BooleanArrayPayload> TYPE =
             new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(EEE.MOD_ID,"boolean_array_payload"));
 
@@ -21,7 +21,7 @@ public record BooleanArrayPayload(boolean[] array ) implements CustomPacketPaylo
             CustomPacketPayload.codec(BooleanArrayPayload::write, BooleanArrayPayload::new);
 
     private BooleanArrayPayload(RegistryFriendlyByteBuf buf) {
-        this(read(buf));
+        this(buf.readVarInt(),read(buf));
     }
 
     private static boolean[] read(RegistryFriendlyByteBuf buf) {
@@ -36,6 +36,7 @@ public record BooleanArrayPayload(boolean[] array ) implements CustomPacketPaylo
     }
 
     private void write(RegistryFriendlyByteBuf buf) {
+        buf.writeVarInt(syncId);
         buf.writeVarInt(array.length);
 
         for (boolean b : array) {
