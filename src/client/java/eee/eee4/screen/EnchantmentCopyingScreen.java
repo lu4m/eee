@@ -1,6 +1,7 @@
 package eee.eee4.screen;
 
 import eee.eee4.EEE;
+import eee.eee4.EeeClient;
 import eee.eee4.networking.BookSlotData;
 import eee.eee4.menus.EnchantmentCopyingMenu;
 import net.minecraft.ChatFormatting;
@@ -14,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -38,9 +40,6 @@ public class EnchantmentCopyingScreen extends AbstractContainerScreen<@NotNull E
     private static final int PG_X = 155;
     private static final int PGUP_Y = 25;
     private static final int PGDOWN_Y = 44;
-
-
-    public static final List<BookSlotData> CLIENT_BOOKS_SLOTS_DATA = new ArrayList<>();
 
     public EnchantmentCopyingScreen(
             EnchantmentCopyingMenu handler,
@@ -239,15 +238,15 @@ public class EnchantmentCopyingScreen extends AbstractContainerScreen<@NotNull E
     private void drawBookToolTips(GuiGraphics context, int mouseX, int mouseY) {
 
         for (int i = 0; i < 6; i++) {
-
             if (isMouseOverBook(mouseX, mouseY, i) && isSlotPresent(i)) {
 
-                if (i < CLIENT_BOOKS_SLOTS_DATA.size()) {
+                if (i < this.menu.bookSlotData.size()) {
 
                     List<Component> tooltip =
-                            new ArrayList<>(CLIENT_BOOKS_SLOTS_DATA.get(i).tooltip());
+                            new ArrayList<>(this.menu.bookSlotData.get(i).tooltip());
 
-                    int xpCost = CLIENT_BOOKS_SLOTS_DATA.get(i).xpCost();
+
+                    int xpCost = this.menu.bookSlotData.get(i).xpCost();
 
                     if (xpCost > 0) {
                         ChatFormatting color =

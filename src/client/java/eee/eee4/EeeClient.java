@@ -41,8 +41,14 @@ public class EeeClient implements ClientModInitializer {
                 BookSlotPayload.TYPE,
                 (payload, context) ->
                         context.client().execute(() -> {
-                            EnchantmentCopyingScreen.CLIENT_BOOKS_SLOTS_DATA.clear();
-                            EnchantmentCopyingScreen.CLIENT_BOOKS_SLOTS_DATA.addAll(payload.books());
+                            Player player = context.client().player;
+                            if (player == null) return;
+
+                            if (player.containerMenu.containerId != payload.syncId()) return;
+
+                            if (player.containerMenu instanceof EnchantmentCopyingMenu menu) {
+                                menu.receiveBooksData(payload.books());
+                            }
                         })
         );
 

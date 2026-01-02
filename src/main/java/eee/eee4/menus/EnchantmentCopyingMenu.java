@@ -40,6 +40,8 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
     private List<ChiseledBookShelfBlockEntity> bookshelves;
     private final int[] currentBooksXpCosts = {-1,-1,-1,-1,-1,-1};
 
+    public final List<BookSlotData> bookSlotData = new ArrayList<>();
+
     private final ContainerData properties;
     private static final int BOOKSHELF_IN_VIEW_PROP = 0;
     private static final int ACTIVE_MASK_PROP = 1;
@@ -55,7 +57,10 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
     private boolean lapisCondition;
     private boolean bookCondition;
 
+    private Player player;
+
     private int playerXpLevel;
+    private boolean playerHasInfiniteMaterials;
 
     public EnchantmentCopyingMenu(int syncId, Inventory playerInventory) {
         this(syncId, playerInventory, ContainerLevelAccess.NULL);
@@ -101,6 +106,8 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
         this.properties = new SimpleContainerData(3);
         this.addDataSlots(this.properties);
 
+        player = playerInventory.player;
+
         scanBookshelves();
 
         context.execute((level, pos) -> {
@@ -115,13 +122,17 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
             else
                 setBookshelfInViewProp(0);
 
-            if (playerInventory.player instanceof ServerPlayer player) {
-                computeState(player);
-                sendToolTips(player);
-            }
         });
-        broadcastChanges();
 
+    }
+
+    @Override
+    public void sendAllDataToRemote() {
+        super.sendAllDataToRemote();
+        if (this.player instanceof ServerPlayer serverPlayer){
+            computeState(serverPlayer);
+            sendToolTips(serverPlayer);
+        }
     }
 
     public int getBookshelfInViewProp(){
@@ -152,6 +163,8 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
                 }
             }
         });
+
+
 
     }
 
@@ -188,7 +201,7 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
             if (!stack.isEmpty()) {
                 presentMask |= (1 << i);
 
-                if (bookCondition  && lapisCondition && playerXpLevel >= currentBooksXpCosts[i]){
+                if (bookCondition  && lapisCondition && (playerXpLevel >= currentBooksXpCosts[i] || playerHasInfiniteMaterials)){
                     activeMask |= (1 << i);
                 }
             }
@@ -210,32 +223,36 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
 
     private void computeState(ServerPlayer player) {
         playerXpLevel = player.experienceLevel;
+        playerHasInfiniteMaterials = player.hasInfiniteMaterials();
         computeStatePlayerless();
 
     }
 
     private void sendToolTips(ServerPlayer player) {
-        List<BookSlotData> books = new ArrayList<>();
+        bookSlotData.clear();
 
         if (bookshelves.isEmpty()) return;
 
         for (int i = 0; i < 6; i++) {
-            books.add(new BookSlotData(
+            bookSlotData.add(new BookSlotData(
                     EeeEnchantmentHelper.buildEnchantmentCopyingTooltip(
                             bookshelves.get(getBookshelfInViewProp()).getItem(i)
                     ),
                     currentBooksXpCosts[i]
             ));
         }
-
         player.connection.send(
-                new ClientboundCustomPayloadPacket(new BookSlotPayload(books))
+                new ClientboundCustomPayloadPacket(new BookSlotPayload(this.containerId,bookSlotData))
         );
     }
 
-    @Override
-    public void sendAllDataToRemote() {
-        super.sendAllDataToRemote();
+    public void receiveBooksData(List<BookSlotData> data){
+        EEE.LOGGER.atInfo().log("data received");
+        bookSlotData.clear();
+
+        for (int i = 0; i < 6; i++) {
+            bookSlotData.add(data.get(i));
+        }
     }
 
     @Override

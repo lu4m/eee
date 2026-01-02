@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public record BookSlotPayload(List<BookSlotData> books)
+public record BookSlotPayload(int syncId, List<BookSlotData> books)
         implements CustomPacketPayload {
 
     public static final Type<@NotNull BookSlotPayload> TYPE =
@@ -24,7 +24,7 @@ public record BookSlotPayload(List<BookSlotData> books)
             CustomPacketPayload.codec(BookSlotPayload::write, BookSlotPayload::new);
 
     private BookSlotPayload(RegistryFriendlyByteBuf buf) {
-        this(read(buf));
+        this(buf.readVarInt(),read(buf));
     }
 
 
@@ -49,6 +49,7 @@ public record BookSlotPayload(List<BookSlotData> books)
     }
 
     private void write(RegistryFriendlyByteBuf buf) {
+        buf.writeVarInt(syncId);
         buf.writeVarInt(books.size());
 
         for (BookSlotData data : books) {
