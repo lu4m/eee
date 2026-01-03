@@ -263,7 +263,7 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
 
         enchantmentsList.forEach( entry -> {
             int level = entry.getIntValue();
-            Component name = Enchantment.getFullname(entry.getKey(),level).copy().setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY));
+            Component name = Enchantment.getFullname(entry.getKey(),level).copy().setStyle(Style.EMPTY);
 
             EnchantmentData e = new EnchantmentData(name,level);
             enchantmentsDataList.add(e);
