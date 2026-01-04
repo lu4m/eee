@@ -75,7 +75,7 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
             }
         };
 
-        this.addSlot(new Slot(this.enchantedBookSlot, 0, 12, 28) {
+        this.addSlot(new Slot(this.enchantedBookSlot, 0, 12, 30) {
             public int getMaxStackSize() {
                 return 1;
             }
@@ -98,7 +98,7 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
             }
         };
 
-        this.addSlot(new Slot(this.bookSlot, 0, 76, 87) {
+        this.addSlot(new Slot(this.bookSlot, 0, 76, 96) {
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return stack.is(Items.BOOK);
             }
@@ -116,13 +116,13 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
             }
         };
 
-        this.addSlot(new Slot(this.outputSlot, 0, 134, 87) {
+        this.addSlot(new Slot(this.outputSlot, 0, 134, 96) {
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return false;
             }
         });
 
-        this.addStandardInventorySlots(playerInventory, 8, 124);
+        this.addStandardInventorySlots(playerInventory, 8, 133);
 
         unselectAll();
 
