@@ -30,7 +30,7 @@ public class EnchantmentSplittingScreen extends AbstractContainerScreen<Enchantm
 
     private static final int THUMB_HEIGHT = 15;
 
-
+    private static final Identifier X_ICON = Identifier.withDefaultNamespace("container/anvil/error");
     private static final Identifier SCROLL_THUMB_TEXTURE = Identifier.withDefaultNamespace("container/creative_inventory/scroller");
     private static final Identifier BG_TEXTURE = Identifier.fromNamespaceAndPath(EEE.MOD_ID, "textures/gui/container/enchantment_splitting.png");
     private static final Identifier ENCHANTMENT_SLOT_HIGHLIGHTED= Identifier.fromNamespaceAndPath(EEE.MOD_ID,"container/enchantment_splitting/bigger_slot_highlighted");
@@ -56,6 +56,29 @@ public class EnchantmentSplittingScreen extends AbstractContainerScreen<Enchantm
 
         renderEnchantments(guiGraphics, mouseX, mouseY);
         renderScrollbar(guiGraphics);
+        if (this.menu.getXIcon())
+            renderXIcon(guiGraphics);
+        renderXpMessage(guiGraphics,this.menu.getMessageState());
+    }
+
+    private void renderXpMessage(GuiGraphics guiGraphics, int stateId){
+        Component component;
+        int fontColor;
+        if (stateId == 0){
+            fontColor = 0xFFFF6060;
+        }
+        else if(stateId == 1){
+            fontColor = 0xFF80FF20;
+        }
+        // -1
+        else{
+            return;
+        }
+
+        component = Component.translatable("container.repair.cost", menu.getFullXpCost());
+        int left = imageWidth - 8 - font.width(component) - 2 + leftPos;
+        guiGraphics.fill(left - 2, topPos + 116, imageWidth - 8 + leftPos, topPos+128, 0x4F000000);
+        guiGraphics.drawString(font, component, left, topPos + 118, fontColor);
     }
 
     private void renderEnchantments(GuiGraphics guiGraphics, int mouseX, int mouseY){
@@ -102,6 +125,9 @@ public class EnchantmentSplittingScreen extends AbstractContainerScreen<Enchantm
         gfx.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLL_THUMB_TEXTURE, x, thumbY, SCROLLBAR_WIDTH, THUMB_HEIGHT);
     }
 
+    private void renderXIcon(GuiGraphics gfx){
+        gfx.blitSprite(RenderPipelines.GUI_TEXTURED,X_ICON,this.leftPos+99,this.topPos+94,28,21);
+    }
 
     @Override
     public void render(@NotNull GuiGraphics context, int mouseX, int mouseY, float deltaTicks) {
@@ -200,7 +226,5 @@ public class EnchantmentSplittingScreen extends AbstractContainerScreen<Enchantm
         return mouseX >= x && mouseX < x + SCROLLBAR_WIDTH
                 && mouseY >= y && mouseY < y + SCROLLBAR_HEIGHT;
     }
-
-
 
 }
