@@ -1,6 +1,5 @@
 package eee.eee4.menus;
 
-import com.mojang.datafixers.kinds.IdF;
 import eee.eee4.EEE;
 import eee.eee4.blockEntitie.EnchantmentSplittingTableEntity;
 import eee.eee4.enchantment.EeeEnchantmentHelper;
@@ -11,6 +10,7 @@ import eee.eee4.registry.EEEBlocks;
 import eee.eee4.registry.EEEMenus;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
@@ -53,9 +53,6 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
     private static final int XP_MESSAGE_STATE_PROP = 1;
     private static final int X_ICON_PROP = 2;
 
-    private ItemStack lastEnchantedBookStack;
-    private ItemStack lastOutputStack;
-
     public EnchantmentSplittingMenu(int syncId, Inventory playerInventory) {
         this(syncId, playerInventory, ContainerLevelAccess.NULL);
     }
@@ -91,6 +88,8 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
                 return EMPTY_ENCHANTED_BOOK_SLOT_TEXTURE;
             }
 
+            
+
         });
 
         this.bookSlot = new SimpleContainer(1) {
@@ -99,6 +98,7 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
                 super.setChanged();
                 EnchantmentSplittingMenu.this.slotsChanged(this);
             }
+
         };
 
         this.addSlot(new Slot(this.bookSlot, 0, 76, 96) {
@@ -109,19 +109,41 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
             public Identifier getNoItemIcon() {
                 return EMPTY_BOOK_SLOT_TEXTURE;
             }
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
+            }
         });
 
-        this.outputSlot = new SimpleContainer(1) {
+        this.outputSlot = new ResultContainer() {
             @Override
             public void setChanged() {
                 super.setChanged();
                 EnchantmentSplittingMenu.this.slotsChanged(this);
             }
+
         };
 
         this.addSlot(new Slot(this.outputSlot, 0, 134, 96) {
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return false;
+            }
+
+            @Override
+            public boolean mayPickup(@NonNull Player player) {
+                return EnchantmentSplittingMenu.this.splittingAllowed();
+            }
+
+            @Override
+            public void onTake(@NonNull Player player, @NonNull ItemStack result) {
+                EnchantmentSplittingMenu.this.onResultTaken(player, result);
+                super.onTake(player, result);
+            }
+
+            @Override
+            public int getMaxStackSize() {
+                return 1;
             }
         });
 
@@ -193,6 +215,30 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
         return fullCost;
     }
 
+    private int selectedXpRepairCost(){
+        int fullCost = 0;
+        int i = 0;
+        for (var entry : enchantmentsList) {
+            if (selected[i]) {
+                fullCost += entry.getIntValue();
+            }
+            i++;
+        }
+        return fullCost;
+    }
+
+    private int unselectedXpRepairCost(){
+        int fullCost = 0;
+        int i = 0;
+        for (var entry : enchantmentsList) {
+            if (!selected[i]) {
+                fullCost += entry.getIntValue();
+            }
+            i++;
+        }
+        return fullCost;
+    }
+
     private boolean shouldXIconAppear(){
         boolean eBookPresent = this.enchantedBookSlot.getSlot(0).get().is(Items.ENCHANTED_BOOK);
         boolean bookPresent = this.bookSlot.getSlot(0).get().is(Items.BOOK);
@@ -214,7 +260,6 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
     }
 
     private int currentXpMessageState(){
-        int xpLevel = this.player.experienceLevel;
 
         if (splittingAllowed()){
             return 1;   //
@@ -234,12 +279,13 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
     }
 
     private boolean allSelected(){
-        boolean anySelected = true;
+        boolean allSelected = true;
         for (boolean b : selected) {
-            anySelected = anySelected && b;
+            allSelected = allSelected && b;
         }
-        return anySelected;
+        return allSelected;
     }
+
 
     private ItemStack getSelected(){
         if (!anySelected()){
@@ -258,11 +304,12 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
         }
 
         EnchantmentHelper.setEnchantments(itemStack,selectedSet.toImmutable());
+        itemStack.set(DataComponents.REPAIR_COST,selectedXpRepairCost());
         return itemStack;
     }
 
     private ItemStack getUnselected(){
-        if (anySelected()){
+        if (allSelected()){
             ItemStack plain = new ItemStack(Items.BOOK);
             plain.setCount(1);
             return new ItemStack(Items.BOOK);
@@ -278,6 +325,7 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
         }
 
         EnchantmentHelper.setEnchantments(itemStack, unselectedSet.toImmutable());
+        itemStack.set(DataComponents.REPAIR_COST,unselectedXpRepairCost());
         return itemStack;
     }
 
@@ -297,6 +345,11 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
         setFullXpCost(fullXpCost());
         setXIcon(shouldXIconAppear());
         setXpMessageState(currentXpMessageState());
+        if (shouldDisplayOutput()){
+            outputSlot.setItem(0,getSelected());
+        }else if(!outputSlot.isEmpty()){
+            outputSlot.setItem(0,ItemStack.EMPTY);
+        }
         sendSelected();
 
     }
@@ -341,9 +394,90 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public @NonNull ItemStack quickMoveStack(@NonNull Player player, int i) {
-       return ItemStack.EMPTY;
-       // TODO
+    public @NonNull ItemStack quickMoveStack(@NonNull Player player, int slotIndex) {
+        ItemStack empty = ItemStack.EMPTY;
+        Slot slot = this.getSlot(slotIndex);
+
+        if (!slot.hasItem()) {
+            return empty;
+        }
+
+        ItemStack stackInSlot = slot.getItem();
+        ItemStack copy = stackInSlot.copy();
+
+
+        if (slotIndex == 2) {
+
+            if (!this.moveItemStackTo(stackInSlot, 3, this.slots.size(), true)) {
+                return ItemStack.EMPTY;
+            }
+
+            slot.onQuickCraft(stackInSlot, copy);
+        }
+
+        else if (slotIndex >= 3) {
+
+            if (stackInSlot.is(Items.ENCHANTED_BOOK)) {
+                ItemStack single = stackInSlot.split(1);
+
+                if (!this.moveItemStackTo(single, 0, 1, false)) {
+                    stackInSlot.grow(1); // rollback if failed
+                    return ItemStack.EMPTY;
+                }
+
+                slot.setChanged();
+                return single;
+            }
+
+
+            else if (stackInSlot.is(Items.BOOK)) {
+                ItemStack single = stackInSlot.split(1);
+
+                if (!this.moveItemStackTo(single, 1, 2, false)) {
+                    stackInSlot.grow(1);
+                    return ItemStack.EMPTY;
+                }
+
+                slot.setChanged();
+                return single;
+            }
+
+            else {
+                int invStart = 3;
+                int invEnd = 3 + 27;
+                int hotbarStart = invEnd;
+                int hotbarEnd = this.slots.size();
+
+                if (slotIndex < hotbarStart) {
+                    if (!this.moveItemStackTo(stackInSlot, hotbarStart, hotbarEnd, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else {
+                    if (!this.moveItemStackTo(stackInSlot, invStart, hotbarStart, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                }
+            }
+        }
+
+        else {
+            if (!this.moveItemStackTo(stackInSlot, 3, this.slots.size(), false)) {
+                return ItemStack.EMPTY;
+            }
+        }
+
+        if (stackInSlot.isEmpty()) {
+            slot.set(ItemStack.EMPTY);
+        } else {
+            slot.setChanged();
+        }
+
+        if (stackInSlot.getCount() == copy.getCount()) {
+            return ItemStack.EMPTY;
+        }
+
+        slot.onTake(player, stackInSlot);
+        return copy;
     }
 
     @Override
@@ -355,7 +489,6 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
         if (container == this.bookSlot){
             selectUpdate();
         }
-        // TODO
 
     }
 
@@ -363,11 +496,26 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
     public boolean clickMenuButton(@NonNull Player player, int i) {
         if (i >= 0 && i < selected.length){
             flipSelectedIndex(i);
-            selectUpdate();
-            broadcastChanges();
+            selectUpdate();;
         }
 
         return super.clickMenuButton(player,i);
 
+    }
+
+    private void onResultTaken(Player player, ItemStack result) {
+
+        if (!player.hasInfiniteMaterials()) {
+            player.giveExperienceLevels(-getFullXpCost());
+        }
+
+        this.bookSlot.removeItem(0, 1);
+
+        ItemStack remainder = getUnselected();
+        this.enchantedBookSlot.setItem(0, remainder);
+        this.outputSlot.setItem(0, ItemStack.EMPTY);
+
+        enchantmentsUpdate(remainder);
+        broadcastChanges();
     }
 }
