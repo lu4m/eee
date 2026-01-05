@@ -5,7 +5,6 @@ import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -15,8 +14,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 
@@ -45,7 +42,7 @@ public class EnchantmentCopyingTableEntity extends BlockEntity implements Nameab
     public static void bookAnimationTick(Level level, BlockPos blockPos, BlockState blockState, EnchantmentCopyingTableEntity tableEntity) {
         tableEntity.oOpen = tableEntity.open;
         tableEntity.oRot = tableEntity.rot;
-        Player player = level.getNearestPlayer((double)blockPos.getX() + (double)0.5F, (double)blockPos.getY() + (double)0.5F, (double)blockPos.getZ() + (double)0.5F, (double)3.0F, false);
+        Player player = level.getNearestPlayer((double)blockPos.getX() + (double)0.5F, (double)blockPos.getY() + (double)0.5F, (double)blockPos.getZ() + (double)0.5F, 3.0F, false);
         if (player != null) {
             double d = player.getX() - ((double)blockPos.getX() + (double)0.5F);
             double e = player.getZ() - ((double)blockPos.getZ() + (double)0.5F);

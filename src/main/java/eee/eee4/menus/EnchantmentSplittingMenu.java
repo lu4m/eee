@@ -48,9 +48,8 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
 
     private static final Identifier EMPTY_BOOK_SLOT_TEXTURE = Identifier.fromNamespaceAndPath(EEE.MOD_ID,"container/slot/book");
     private static final Identifier EMPTY_ENCHANTED_BOOK_SLOT_TEXTURE = Identifier.fromNamespaceAndPath(EEE.MOD_ID,"container/slot/enchanted_book");
-    private static final int TOP_DISPLAY_INDEX_PROP = 0;
-    private static final int FULL_XP_COST_PROP = 1;
-    private static final int X_ICON_PROP = 2;
+    private static final int FULL_XP_COST_PROP = 0;
+    private static final int X_ICON_PROP = 1;
 
     private ItemStack lastEnchantedBookStack;
     private ItemStack lastOutputStack;
@@ -64,7 +63,7 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
         this.context = context;
         this.player = playerInventory.player;
 
-        this.properties = new SimpleContainerData(3);
+        this.properties = new SimpleContainerData(2);
         this.addDataSlots(this.properties);
 
         this.enchantedBookSlot = new SimpleContainer(1) {
@@ -128,15 +127,6 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
 
         broadcastChanges();
 
-    }
-
-
-    private void setTopDisplayIndex(int i){
-        this.properties.set(TOP_DISPLAY_INDEX_PROP,i);
-    }
-
-    public int getTopDisplayIndex(){
-        return this.properties.get(TOP_DISPLAY_INDEX_PROP);
     }
 
     private void setFullXpCost(int i){
@@ -343,13 +333,9 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(@NonNull Player player, int i) {
-        if (i >= 0 && i < 3){
-            int offset = getTopDisplayIndex();
-            if (i + offset < selected.length){
-                flipSelectedIndex(i + offset);
-                selectUpdate();
-                return true;
-            }
+        if (i >= 0 && i < selected.length){
+            flipSelectedIndex(i);
+            selectUpdate();
         }
 
         return super.clickMenuButton(player,i);

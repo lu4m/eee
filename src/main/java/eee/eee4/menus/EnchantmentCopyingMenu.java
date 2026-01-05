@@ -12,7 +12,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
@@ -57,7 +56,7 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
     private boolean lapisCondition;
     private boolean bookCondition;
 
-    private Player player;
+    private final Player player;
 
     private int playerXpLevel;
     private boolean playerHasInfiniteMaterials;
@@ -111,7 +110,7 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
         scanBookshelves();
 
         context.execute((level, pos) -> {
-            int prevBookshelf = -1;;
+            int prevBookshelf = -1;
             if (level.getBlockEntity(pos) instanceof EnchantmentCopyingTableEntity tableEntity)
                 prevBookshelf = tableEntity.getLastPage();
 
@@ -247,7 +246,6 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
     }
 
     public void receiveBooksData(List<BookSlotData> data){
-        EEE.LOGGER.atInfo().log("data received");
         bookSlotData.clear();
 
         for (int i = 0; i < 6; i++) {

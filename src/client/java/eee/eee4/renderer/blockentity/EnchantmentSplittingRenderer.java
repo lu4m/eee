@@ -17,7 +17,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +53,6 @@ public class EnchantmentSplittingRenderer implements BlockEntityRenderer<@NotNul
 
         s.yRot = switch (e.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)) {
             case NORTH -> 180.0F;
-            case SOUTH -> 0.0F;
             case WEST  -> 90.0F;
             case EAST  -> -90.0F;
             default -> 0.0F;

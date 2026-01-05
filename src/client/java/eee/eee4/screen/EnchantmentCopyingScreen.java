@@ -1,8 +1,6 @@
 package eee.eee4.screen;
 
 import eee.eee4.EEE;
-import eee.eee4.EeeClient;
-import eee.eee4.networking.BookSlotData;
 import eee.eee4.menus.EnchantmentCopyingMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -15,7 +13,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
