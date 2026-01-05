@@ -1,6 +1,7 @@
 package eee.eee4.menus;
 
 import eee.eee4.EEE;
+import eee.eee4.blockEntitie.EnchantmentSplittingTableEntity;
 import eee.eee4.enchantment.EeeEnchantmentHelper;
 import eee.eee4.networking.EnchantmentData;
 import eee.eee4.networking.s2c.BooleanArrayPayload;
@@ -8,7 +9,6 @@ import eee.eee4.networking.s2c.EnchantedBookPayload;
 import eee.eee4.registry.EEEBlocks;
 import eee.eee4.registry.EEEMenus;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -160,6 +160,11 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
             selected[i] = !selected[i];
     }
 
+    @Override
+    public boolean stillValid(@NonNull Player player) {
+        return stillValid(context, player, EEEBlocks.ENCHANTMENT_SPLITTING_TABLE);
+    }
+
     private void unselectAll(){
         selected = new boolean[enchantmentsList.size()];
         Arrays.fill(selected, false);
@@ -308,16 +313,22 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
         selected = receivedSelected;
     }
 
+    @Override
+    public void removed(@NonNull Player player) {
+        super.removed(player);
+        this.context.execute((level,pos) ->
+        {
+              if (level.getBlockEntity(pos) instanceof EnchantmentSplittingTableEntity entity){
+                  this.clearContainer(player,bookSlot);
+                  this.clearContainer(player,enchantedBookSlot);
+              }
+        });
+    }
 
     @Override
     public @NonNull ItemStack quickMoveStack(@NonNull Player player, int i) {
        return ItemStack.EMPTY;
        // TODO
-    }
-
-    @Override
-    public boolean stillValid(@NonNull Player player) {
-        return stillValid(context, player, EEEBlocks.ENCHANTMENT_SPLITTING_TABLE);
     }
 
     @Override
@@ -327,6 +338,21 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
             enchantmentsUpdate(book);
         }
         // TODO
+
+    }
+
+    @Override
+    public boolean clickMenuButton(@NonNull Player player, int i) {
+        if (i >= 0 && i < 3){
+            int offset = getTopDisplayIndex();
+            if (i + offset < selected.length){
+                flipSelectedIndex(i + offset);
+                selectUpdate();
+                return true;
+            }
+        }
+
+        return super.clickMenuButton(player,i);
 
     }
 }
