@@ -17,6 +17,13 @@ public final class ItemGroupsManager {
                     entries.addAfter(Items.IRON_SWORD, EEEItems.RITUALISTIC_SWORD,EEEItems.SEMANTIC_SPLITTING_SWORD);
                 }
         );
+
+        ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.INGREDIENTS).register(
+                entries -> {
+                    entries.addAfter(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE, EEEItems.STONE_TABLET);
+                    entries.addAfter(Items.BOOK, EEEItems.ARCHAEOLOGICAL_ANNOTATIONS);
+                }
+        );
     }
 
 }

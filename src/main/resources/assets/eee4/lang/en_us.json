@@ -5,5 +5,8 @@
   "gui.eee4.enchantment_splitting.title": "Split Enchantments",
   "block.eee4.enchantment_splitting_table": "Enchantment Splitting Table",
   "item.eee4.ritualistic_sword": "Ritualistic Sword",
-  "item.eee4.semantic_splitting_sword": "Semantic Splitting Sword"
+  "item.eee4.semantic_splitting_sword": "Semantic Splitting Sword",
+  "tag.item.eee4.ritualistic_repair":"Ritualistic Repair",
+  "item.eee4.stone_tablet":"Stone Tablet",
+  "item.eee4.archaeological_annotations":"Archaeological Annotations"
 }
