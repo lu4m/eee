@@ -88,7 +88,7 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
                 return EMPTY_ENCHANTED_BOOK_SLOT_TEXTURE;
             }
 
-            
+
 
         });
 
@@ -506,7 +506,7 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
     private void onResultTaken(Player player, ItemStack result) {
 
         if (!player.hasInfiniteMaterials()) {
-            player.giveExperienceLevels(-getFullXpCost());
+            player.giveExperienceLevels(-3);
         }
 
         this.bookSlot.removeItem(0, 1);
