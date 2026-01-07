@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:polished_deepslate",
+    "B": "minecraft:deepslate",
+    "C": "eee4:semantic_splitting_sword",
+    "D": "minecraft:amethyst_shard",
+    "E": "minecraft:wither_skeleton_skull"
+  },
+  "pattern": [
+    " C ",
+    "DAD",
+    "BEB"
+  ],
+  "result": {
+    "count": 1,
+    "id": "eee4:enchantment_splitting_table"
+  }
+}

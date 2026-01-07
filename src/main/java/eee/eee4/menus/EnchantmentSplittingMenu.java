@@ -16,6 +16,8 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -504,6 +506,10 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
     }
 
     private void onResultTaken(Player player, ItemStack result) {
+
+        context.execute((level,pos) -> {
+            level.playSound(null,pos,SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR,SoundSource.BLOCKS,0.2F,1.5F);
+        });
 
         if (!player.hasInfiniteMaterials()) {
             player.giveExperienceLevels(-3);
