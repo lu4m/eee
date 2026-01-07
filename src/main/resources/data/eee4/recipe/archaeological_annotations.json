@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "eee4:stone_tablet",
+    "minecraft:writable_book"
+  ],
+  "result": {
+    "count": 1,
+    "id": "eee4:archaeological_annotations"
+  }
+}
