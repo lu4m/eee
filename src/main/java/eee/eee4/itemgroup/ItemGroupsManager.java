@@ -20,8 +20,8 @@ public final class ItemGroupsManager {
 
         ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.INGREDIENTS).register(
                 entries -> {
-                    entries.addAfter(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE, EEEItems.STONE_TABLET, EEEItems.CURSE_OF_SEMANTIC_SPLITTING);
-                    entries.addAfter(Items.BOOK, EEEItems.ARCHAEOLOGICAL_ANNOTATIONS);
+                    entries.addAfter(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE, EEEItems.STONE_TABLET);
+                    entries.addAfter(Items.BOOK, EEEItems.ARCHAEOLOGICAL_ANNOTATIONS, EEEItems.CURSE_OF_SEMANTIC_SPLITTING);
                 }
         );
     }
