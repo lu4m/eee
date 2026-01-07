@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:amethyst_shard",
+    "B": "minecraft:stick",
+    "C": "minecraft:bone"
+  },
+  "pattern": [
+    " A ",
+    " A ",
+    "CBC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "eee4:ritualistic_sword"
+  }
+}
