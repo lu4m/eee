@@ -508,7 +508,7 @@ public class EnchantmentSplittingMenu extends AbstractContainerMenu {
     private void onResultTaken(Player player, ItemStack result) {
 
         context.execute((level,pos) -> {
-            level.playSound(null,pos,SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR,SoundSource.BLOCKS,0.2F,1.5F);
+            level.playSound(null,pos,SoundEvents.PLAYER_ATTACK_CRIT,SoundSource.BLOCKS,1.0F,0.8F);
         });
 
         if (!player.hasInfiniteMaterials()) {
