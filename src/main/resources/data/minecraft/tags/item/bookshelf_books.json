@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "eee4:archaeological_annotations"
+    "eee4:archaeological_annotations",
+    "eee4:curse_of_semantic_splitting"
   ]
 }

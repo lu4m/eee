@@ -6,6 +6,7 @@ import eee.eee4.enchantment.EeeEnchantmentHelper;
 import eee.eee4.networking.BookSlotData;
 import eee.eee4.networking.s2c.BookSlotPayload;
 import eee.eee4.registry.EEEBlocks;
+import eee.eee4.registry.EEEItems;
 import eee.eee4.registry.EEEMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -174,6 +175,9 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
             if (stack.is(Items.ENCHANTED_BOOK)){
                currentBooksXpCosts[i] = EeeEnchantmentHelper.xpCost(stack);
             }
+            else if(stack.is(EEEItems.ARCHAEOLOGICAL_ANNOTATIONS)){
+                currentBooksXpCosts[i] = 31;
+            }
         }
     }
 
@@ -294,7 +298,7 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
 
         ItemStack selected = bookshelves.get(getBookshelfInViewProp()).getItem(index);
 
-        if (!selected.is(Items.ENCHANTED_BOOK)) return;
+        if (!selected.is(Items.ENCHANTED_BOOK) && !selected.is(EEEItems.ARCHAEOLOGICAL_ANNOTATIONS)) return;
 
         ItemStack book  = inventory.getItem(BOOK_SLOT);
         ItemStack lapis = inventory.getItem(LAPIS_SLOT);
@@ -311,20 +315,32 @@ public class EnchantmentCopyingMenu extends AbstractContainerMenu {
             player.giveExperiencePoints(-EeeEnchantmentHelper.xpPointsDecrease(selected));
         }
 
-        ItemStack copy = new ItemStack(Items.ENCHANTED_BOOK);
-        EnchantmentHelper.setEnchantments(
-                copy,EnchantmentHelper.getEnchantmentsForCrafting(selected)
-        );
-        copy.setCount(1);
-        copy.set(DataComponents.REPAIR_COST,selected.get(DataComponents.REPAIR_COST));
+        ItemStack result;
 
-        inventory.setItem(BOOK_SLOT,copy);
+        if (selected.is(EEEItems.ARCHAEOLOGICAL_ANNOTATIONS)) {
+            result = new ItemStack(EEEItems.CURSE_OF_SEMANTIC_SPLITTING);
 
-        context.execute(
-                (level, blockPos) ->
-                level.playSound( null, blockPos, SoundEvents.ENCHANTMENT_TABLE_USE,
-                        SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.1F + 0.9F)
-        );
+            context.execute((level,pos) -> {
+                level.playSound(null, pos, SoundEvents.ELDER_GUARDIAN_CURSE,SoundSource.BLOCKS,1.0F,0.5F);
+            });
+
+        }
+        else{
+            result = new ItemStack(Items.ENCHANTED_BOOK);
+            EnchantmentHelper.setEnchantments(
+                    result, EnchantmentHelper.getEnchantmentsForCrafting(selected)
+            );
+            result.set(DataComponents.REPAIR_COST, selected.get(DataComponents.REPAIR_COST));
+
+            context.execute(
+                    (level, pos) ->
+                            level.playSound(null, pos, SoundEvents.ENCHANTMENT_TABLE_USE,
+                                    SoundSource.BLOCKS, 1.0F, level.random.nextFloat() * 0.1F + 0.9F)
+            );
+        }
+        result.setCount(1);
+        inventory.setItem(BOOK_SLOT, result);
+
 
     }
 

@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": "minecraft:echo_shard",
+  "base": "eee4:ritualistic_sword",
+  "result": {
+    "id": "eee4:semantic_splitting_sword"
+  },
+  "template": "eee4:curse_of_semantic_splitting"
+}

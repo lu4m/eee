@@ -8,5 +8,10 @@
   "item.eee4.semantic_splitting_sword": "Semantic Splitting Sword",
   "tag.item.eee4.ritualistic_repair":"Ritualistic Repair",
   "item.eee4.stone_tablet":"Stone Tablet",
-  "item.eee4.archaeological_annotations":"Archaeological Annotations"
+  "item.eee4.archaeological_annotations":"Archaeological Annotations",
+  "item.eee4.smithing_template.curse.applies_to": "Ritualistic Sword",
+  "item.eee4.smithing_template.curse.ingredients": "Echo Shard",
+  "item.eee4.smithing_template.curse.base_slot_description" : "Add a Ritualistic Sword",
+  "item.eee4.smithing_template.curse.additions_slot_description": "Add Echo Shard",
+  "item.eee4.curse_of_semantic_splitting": "Curse Of Semantic Splitting"
 }
